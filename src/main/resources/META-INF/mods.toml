@@ -1,0 +1,29 @@
+modLoader="javafml" #mandatory
+loaderVersion="[32,)" #mandatory
+issueTrackerURL="https://github.com/caltinor" #optional
+displayURL="https://github.com/caltinor" #optional
+logoFile="" #optional
+credits="Thanks to the MMD community." #optional
+authors="Caltinor" #optional
+
+[[mods]] #mandatory
+modId="gnc" #mandatory
+version="2.0" #mandatory
+displayName="Guild & Commerce" #mandatory
+#updateJSONURL="http://myurl.me/"
+description='''
+A Server protection and economy mod.
+'''
+
+[[dependencies.enderthing]] #optional
+    modId="forge" #mandatory
+    mandatory=true #mandatory
+    versionRange="[32.0.1,)" #mandatory
+    ordering="NONE"
+    side="BOTH"
+[[dependencies.enderthing]]
+    modId="minecraft"
+    mandatory=true
+    versionRange="[1.16.1,1.17)"
+    ordering="NONE"
+    side="BOTH"

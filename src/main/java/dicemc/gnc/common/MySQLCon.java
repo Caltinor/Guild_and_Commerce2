@@ -1,30 +1,68 @@
 package dicemc.gnc.common;
 
 import java.sql.Connection;
+import java.sql.DatabaseMetaData;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class MySQLCon {
 	private final String port = "3306";
-	private final String name = "new_schema";
-	private final String host = "jdbc:mysql://localhost:" + port + "/" + name;
-	private final String user = "gncLink";
-	private final String pass = "gncAdmin1!";
+	private final String name = "apexMC330051";
+	private final String url  = "mysql.apexhosting.gdn";
+	private final String host = "jdbc:mysql://" + url + ":" + port + "/" + name;
+	private final String user = "apexMC330051";
+	private final String pass = "576ea4a0f6";
 	
 	private ResultSet rs;
 	private Statement stmt;
+	private Connection con;
+	private Map<String, String> tableRef = new HashMap<String, String>();
 	
 	public MySQLCon(){
+		tableRef = defineTables();
 		try {
-			Connection con = DriverManager.getConnection(host, user, pass);
+			con = DriverManager.getConnection(host, user, pass);
 			stmt = con.createStatement();
-			rs = stmt.executeQuery("SELECT * FROM new_schema.tbl_test");
 			System.out.println("DB Connection Successful");
-		} catch (SQLException e) {e.printStackTrace();}		
+		} catch (SQLException e) {e.printStackTrace();}	
+		for (Map.Entry<String, String> entry : tableRef.entrySet()) {
+			confirmTable(con, entry);
+		}
+	}		
+	
+	private void confirmTable(Connection con, Map.Entry<String, String> tbl) {
+		try {
+			Statement st = con.createStatement();
+			DatabaseMetaData dbm = con.getMetaData();
+			rs = dbm.getTables(null, null, tbl.getKey(), null);
+			if (rs.next()) {return; } else {
+				String sqlSTR = "CREATE TABLE "+ tbl.getKey() + tbl.getValue();
+				System.out.println(sqlSTR);
+				st.executeUpdate(sqlSTR);			
+			}
+		} catch (SQLException e) {e.printStackTrace();}
+	}
+	
+	private Map<String, String> defineTables() {
+		Map<String, String> map = new HashMap<String, String>();
+		String sqlSTR = "";
+		//Guild Table
+		sqlSTR = " (GuildID INT NOT NULL AUTO_INCREMENT, " + 
+				"Name VARCHAR(32) NOT NULL, " + 
+				"Open TINYINT(1) NOT NULL, " + 
+				"Tax DOUBLE NOT NULL, " + 
+				"PRIMARY KEY (GuildID))";
+		map.put("tbl_guild", sqlSTR);
+		//Other table
+		//repeat
+		//
+		return map;
 	}
 	
 	public List<String> getResults(){

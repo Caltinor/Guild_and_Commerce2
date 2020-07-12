@@ -1,4 +1,4 @@
-package dicemc.gnc.command.impl;
+package dicemc.gnc.testmaterial;
 
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.tree.LiteralCommandNode;

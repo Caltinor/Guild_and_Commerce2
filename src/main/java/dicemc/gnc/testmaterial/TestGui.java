@@ -1,9 +1,7 @@
-package dicemc.gnc.command.impl;
+package dicemc.gnc.testmaterial;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
 
-import dicemc.gnc.common.Networking;
-import dicemc.gnc.common.PacketRequestData;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.button.Button;

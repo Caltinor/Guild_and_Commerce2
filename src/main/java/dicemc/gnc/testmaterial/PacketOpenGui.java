@@ -1,8 +1,7 @@
-package dicemc.gnc.common;
+package dicemc.gnc.testmaterial;
 
 import java.util.function.Supplier;
 
-import dicemc.gnc.command.impl.TestGui;
 import net.minecraftforge.fml.network.NetworkEvent;
 
 public class PacketOpenGui {

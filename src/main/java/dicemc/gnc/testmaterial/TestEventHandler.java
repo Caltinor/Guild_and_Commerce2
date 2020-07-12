@@ -1,6 +1,5 @@
-package dicemc.gnc.common;
+package dicemc.gnc.testmaterial;
 
-import dicemc.gnc.command.impl.DBCommands;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraftforge.event.entity.EntityEvent.EnteringChunk;

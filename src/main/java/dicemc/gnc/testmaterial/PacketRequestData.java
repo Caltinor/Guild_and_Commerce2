@@ -1,4 +1,4 @@
-package dicemc.gnc.common;
+package dicemc.gnc.testmaterial;
 
 import java.util.List;
 import java.util.function.Supplier;

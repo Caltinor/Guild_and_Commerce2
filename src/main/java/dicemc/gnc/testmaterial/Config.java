@@ -1,4 +1,4 @@
-package dicemc.gnc;
+package dicemc.gnc.testmaterial;
 
 import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.eventbus.api.SubscribeEvent;

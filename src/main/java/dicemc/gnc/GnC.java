@@ -11,11 +11,12 @@ import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import dicemc.gnc.common.Networking;
-import dicemc.gnc.util.Reference;
+import dicemc.gnc.testmaterial.Config;
+import dicemc.gnc.testmaterial.Networking;
 
-@Mod(Reference.MOD_ID)
+@Mod(GnC.MOD_ID)
 public class GnC {
+	public static final String MOD_ID = "gnc";
 	private static final Logger LOGGER = LogManager.getLogger();
 	
 	public GnC() {

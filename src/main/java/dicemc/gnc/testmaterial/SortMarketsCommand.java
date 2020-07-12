@@ -1,4 +1,4 @@
-package dicemc.gnc.command.impl;
+package dicemc.gnc.testmaterial;
 
 import java.util.List;
 
@@ -9,7 +9,6 @@ import com.mojang.brigadier.builder.ArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 
-import dicemc.gnc.common.TestEventHandler;
 import net.minecraft.command.CommandSource;
 import net.minecraft.command.Commands;
 import net.minecraft.util.text.StringTextComponent;

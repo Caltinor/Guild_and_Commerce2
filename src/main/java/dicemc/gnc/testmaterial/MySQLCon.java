@@ -1,4 +1,4 @@
-package dicemc.gnc.common;
+package dicemc.gnc.testmaterial;
 
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
@@ -10,8 +10,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import dicemc.gnc.Config;
 
 public class MySQLCon {
 	private final String port = Config.DB_PORT.get();

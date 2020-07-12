@@ -1,15 +1,15 @@
-package dicemc.gnc.common;
+package dicemc.gnc.testmaterial;
 
 import java.util.function.Supplier;
 
-import dicemc.gnc.util.Reference;
+import dicemc.gnc.GnC;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.world.server.ServerWorld;
 import net.minecraft.world.storage.DimensionSavedDataManager;
 import net.minecraft.world.storage.WorldSavedData;
 
 public class MyWSD extends WorldSavedData implements Supplier<MyWSD>{
-	private static final String DATA_NAME = Reference.MOD_ID + "somefilename";
+	private static final String DATA_NAME = GnC.MOD_ID + "somefilename";
 
 	public MyWSD(String name) {super(name);}
 	
@@ -24,7 +24,7 @@ public class MyWSD extends WorldSavedData implements Supplier<MyWSD>{
 	public static MyWSD forWorld(ServerWorld world) {
 		DimensionSavedDataManager storage = world.getSavedData();
 		Supplier<MyWSD> sup = new MyWSD();
-		MyWSD instance = (MyWSD) storage.getOrCreate(sup, Reference.MOD_ID);
+		MyWSD instance = (MyWSD) storage.getOrCreate(sup, GnC.MOD_ID);
 		
 		if (instance == null) {
 			instance = new MyWSD();

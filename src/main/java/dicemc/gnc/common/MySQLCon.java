@@ -11,13 +11,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import dicemc.gnc.Config;
+
 public class MySQLCon {
-	private final String port = "3306";
-	private final String name = "apexMC330051";
-	private final String url  = "mysql.apexhosting.gdn";
+	private final String port = Config.DB_PORT.get();
+	private final String name = Config.DB_NAME.get();
+	private final String url  = Config.DB_URL.get();
 	private final String host = "jdbc:mysql://" + url + ":" + port + "/" + name;
-	private final String user = "apexMC330051";
-	private final String pass = "576ea4a0f6";
+	private final String user = Config.DB_USER.get();
+	private final String pass = Config.DB_PASS.get();
 	
 	private ResultSet rs;
 	private Statement stmt;
@@ -50,15 +52,21 @@ public class MySQLCon {
 	}
 	
 	private Map<String, String> defineTables() {
+		/*TODO: incorporate server world name into the table names
+		 * 		This allows for use of the same database with different worlds
+		 * 		this also allows for singleplayer use within the same DB
+		 */
 		Map<String, String> map = new HashMap<String, String>();
 		String sqlSTR = "";
+		String tblSTR = "";
 		//Guild Table
+		tblSTR = "tbl_guild";
 		sqlSTR = " (GuildID INT NOT NULL AUTO_INCREMENT, " + 
 				"Name VARCHAR(32) NOT NULL, " + 
 				"Open TINYINT(1) NOT NULL, " + 
 				"Tax DOUBLE NOT NULL, " + 
 				"PRIMARY KEY (GuildID))";
-		map.put("tbl_guild", sqlSTR);
+		map.put(tblSTR, sqlSTR);
 		//Other table
 		//repeat
 		//

@@ -1,7 +1,11 @@
 package dicemc.gnc;
 
 import net.minecraftforge.common.ForgeConfigSpec;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.config.ModConfig;
 
+@Mod.EventBusSubscriber
 public class Config {
 	
 	public static ForgeConfigSpec SERVER_CONFIG;
@@ -23,11 +27,14 @@ public class Config {
 		ForgeConfigSpec.Builder CLIENT_BUILDER = new ForgeConfigSpec.Builder();
 		
 		CLIENT_BUILDER.comment("Client Settings").push(CATEGORY_CLIENT);
+		setupBlockConfig_DB(CLIENT_BUILDER);
 		CLIENT_BUILDER.pop();
 		
 		SERVER_BUILDER.comment("Server Settings").push(CATEGORY_SERVER);
-		setupBlockConfig_DB(SERVER_BUILDER);
 		SERVER_BUILDER.pop();
+		
+		CLIENT_CONFIG = CLIENT_BUILDER.build();
+		SERVER_CONFIG = SERVER_BUILDER.build();
 	}
 	
 	private static void setupBlockConfig_DB(ForgeConfigSpec.Builder builder) {
@@ -36,14 +43,20 @@ public class Config {
 		DB_PORT = builder.comment("Database port")
 				.define("port", "3306");
 		DB_NAME = builder.comment("Database name")
-				.define("name", "mySchema");
+				.define("name", "new_Schema");
 		DB_URL = builder.comment("Database URL")
 				.define("url", "localhost");
 		DB_USER = builder.comment("Database Username")
-				.define("user", "root");
+				.define("user", "gncLink");
 		DB_PASS = builder.comment("Database Password")
-				.define("pass", "root");
+				.define("pass", "gncAdmin1!");
 		
 		builder.pop();		
 	}
+	
+	@SubscribeEvent
+	public static void onLoad(final ModConfig.Loading configEvent) {}
+	
+	@SubscribeEvent
+	public static void onReload(final ModConfig.Reloading configEvent) {}
 }

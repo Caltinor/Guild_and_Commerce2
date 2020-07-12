@@ -11,6 +11,7 @@ import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import dicemc.gnc.common.Networking;
 import dicemc.gnc.util.Reference;
 
 @Mod(Reference.MOD_ID)
@@ -32,7 +33,7 @@ public class GnC {
 	
 	private void setup(final FMLCommonSetupEvent event) {
 		LOGGER.info("Setup");
-		
+		Networking.registerMessages();
 	}
 	
 	private void doClientStuff(final FMLClientSetupEvent event) {}

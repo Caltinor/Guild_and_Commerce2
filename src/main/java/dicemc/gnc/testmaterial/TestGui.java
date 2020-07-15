@@ -21,6 +21,12 @@ public class TestGui extends Screen{
 	@Override
 	public boolean isPauseScreen() {return false;}
 	
+	@Override
+	public boolean keyPressed(int p_231046_1_, int p_231046_2_, int p_231046_3_) {
+		//input if statement for the keycode being used.  guess the mappings
+		return super.keyPressed(p_231046_1_, p_231046_2_, p_231046_3_);
+	}
+	
 	private void action() {minecraft.displayGuiScreen(null);}
 	
 	private void callAsc() {

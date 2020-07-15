@@ -21,6 +21,11 @@ public class Config {
 	public static ForgeConfigSpec.ConfigValue<String> DB_URL;
 	public static ForgeConfigSpec.ConfigValue<String> DB_USER;
 	public static ForgeConfigSpec.ConfigValue<String> DB_PASS;
+	/*TODO add a variable for defining unique tables.
+	 *   This would append to tables on create and be used to call tables when
+	 *   multiple of the same table exists in a datbase.  This also allows
+	 *   for the designation of multiple servers to use the same market.
+	 */
 	
 	static {
 		ForgeConfigSpec.Builder SERVER_BUILDER = new ForgeConfigSpec.Builder();

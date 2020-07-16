@@ -9,7 +9,10 @@ public class AccountUtils {
     *
     *@param ID guild IDs should be Integer.toString() and player IDs should be UUID.toString()
     */
-    public static String accountExists(String ID) {return "";}
+    public static String accountExists(String ID) {
+    	addAccount(ID, 100); //TODO: replace value with config object
+    	return "";
+    }
     
     /**
     *Returns the player or guild balance
@@ -61,5 +64,5 @@ public class AccountUtils {
     *@param ID guild IDs should be Integer.toString() and player IDs should be UUID.toString()
     *@param balance the balance to be set initially
     */
-    private static String addAccount(String ID, double balance) {return "":}
+    private static String addAccount(String ID, double balance) {return "";}
 }

@@ -1,6 +1,6 @@
 package dicemc.gnc.testmaterial;
 
-import java.sql.Connection;
+/*import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -9,10 +9,10 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.Map;*/
 
 public class MySQLCon {
-	private final String port = Config.DB_PORT.get();
+	/*private final String port = Config.DB_PORT.get();
 	private final String name = Config.DB_NAME.get();
 	private final String url  = Config.DB_URL.get();
 	private final String host = "jdbc:mysql://" + url + ":" + port + "/" + name;
@@ -50,10 +50,6 @@ public class MySQLCon {
 	}
 	
 	private Map<String, String> defineTables() {
-		/*TODO: incorporate server world name into the table names
-		 * 		This allows for use of the same database with different worlds
-		 * 		this also allows for singleplayer use within the same DB
-		 */
 		Map<String, String> map = new HashMap<String, String>();
 		String sqlSTR = "";
 		String tblSTR = "";
@@ -88,5 +84,5 @@ public class MySQLCon {
 		try {rs = stmt.executeQuery(sqlSTR);
 		System.out.println("Markets Sorted");
 		} catch (SQLException e) {e.printStackTrace();}
-	}
+	}*/
 }

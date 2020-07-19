@@ -14,6 +14,7 @@ import dicemc.gnc.setup.Config;
 public class GnC {
 	public static final String MOD_ID = "gnc";
 	public static DatabaseManager DBM_MAIN, DBM_ALT;
+	public static ChunkManager ckMgr;
 	
 	public GnC() {
 		ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT, Config.CLIENT_CONFIG);

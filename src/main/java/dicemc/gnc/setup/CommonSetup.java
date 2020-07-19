@@ -20,5 +20,6 @@ public class CommonSetup {
 				Config.DB_NAME.get().equalsIgnoreCase(Config.DB2_NAME.get()) &&
 				Config.DB_PORT.get().equalsIgnoreCase(Config.DB2_PORT.get()));
 		GnC.DBM_ALT = useAlt ? new DatabaseManager(false) : new DatabaseManager(true);
+		GnC.ckMgr = new ChunkManager();
 	}
 }

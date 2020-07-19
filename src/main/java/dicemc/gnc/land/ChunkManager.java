@@ -26,4 +26,8 @@ public class ChunkManager {
 	public String removePlayer(ChunkPos ck, UUID player) {return "";}
 	
 	public Map<UUID, String> getPlayers(ChunkPos ck) {return new HashMap<UUID, String>();}
+	
+	public String saveChunkData(ChunkPos ck) {return "";}
+	
+	public String loadChunkData(ChunkPos ck) {return "";}
 }

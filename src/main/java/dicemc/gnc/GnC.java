@@ -8,7 +8,9 @@ import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 
 import java.util.UUID;
 
-import dicemc.gnc.database.DatabaseManager;
+import dicemc.gnc.datastorage.database.DatabaseManager;
+import dicemc.gnc.datastorage.wsd.MarketWSD;
+import dicemc.gnc.datastorage.wsd.WorldWSD;
 import dicemc.gnc.land.ChunkManager;
 import dicemc.gnc.setup.ClientSetup;
 import dicemc.gnc.setup.CommonSetup;
@@ -18,6 +20,8 @@ import dicemc.gnc.setup.Config;
 public class GnC {
 	public static final String MOD_ID = "gnc";
 	public static DatabaseManager DBM_MAIN, DBM_ALT;
+	public static MarketWSD marketSaver;
+	public static WorldWSD worldSaver;
 	public static ChunkManager ckMgr;
 	public static UUID NIL = UUID.fromString("");
 	

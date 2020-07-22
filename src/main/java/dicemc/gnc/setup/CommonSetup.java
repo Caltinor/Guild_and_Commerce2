@@ -1,7 +1,9 @@
 package dicemc.gnc.setup;
 
 import dicemc.gnc.GnC;
-import dicemc.gnc.database.DatabaseManager;
+import dicemc.gnc.datastorage.database.DatabaseManager;
+import dicemc.gnc.datastorage.wsd.MarketWSD;
+import dicemc.gnc.datastorage.wsd.WorldWSD;
 import dicemc.gnc.land.ChunkManager;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -16,11 +18,10 @@ public class CommonSetup {
 	
 	@SubscribeEvent
 	public static void onServerStart(FMLServerStartingEvent event) {
-		GnC.DBM_MAIN = new DatabaseManager(true);
-		boolean useAlt = (Config.DB_URL.get().equalsIgnoreCase(Config.DB2_URL.get()) &&
-				Config.DB_NAME.get().equalsIgnoreCase(Config.DB2_NAME.get()) &&
-				Config.DB_PORT.get().equalsIgnoreCase(Config.DB2_PORT.get()));
-		GnC.DBM_ALT = useAlt ? new DatabaseManager(false) : new DatabaseManager(true);
+		if (Config.WORLD_USE_DB.get())  GnC.DBM_MAIN = new DatabaseManager(true);
+		else GnC.worldSaver = new WorldWSD();
+		if (Config.MARKET_USE_DB.get()) GnC.DBM_ALT = new DatabaseManager(false);
+		else GnC.marketSaver = new MarketWSD();
 		GnC.ckMgr = new ChunkManager();
 	}
 }

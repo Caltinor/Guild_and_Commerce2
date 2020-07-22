@@ -1,4 +1,4 @@
-package dicemc.gnc.database;
+package dicemc.gnc.datastorage.database;
 
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;

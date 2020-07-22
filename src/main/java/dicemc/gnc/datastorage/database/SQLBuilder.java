@@ -1,4 +1,4 @@
-package dicemc.gnc.database;
+package dicemc.gnc.datastorage.database;
 
 import java.util.List;
 import java.util.Map;

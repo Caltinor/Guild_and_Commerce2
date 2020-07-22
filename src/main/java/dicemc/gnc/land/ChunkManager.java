@@ -1,15 +1,26 @@
 package dicemc.gnc.land;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+
+import net.minecraft.util.math.ChunkPos;
+
 public class ChunkManager {
-	private Map<ChunkPos, ChunkData> cap = HashMap<ChunkPos, ChunkData>();
+	private Map<ChunkPos, ChunkData> cap = new HashMap<ChunkPos, ChunkData>();
 
 	public ChunkManager() {}
 	
-	public String addChunk(ChunkPos) {return "";}
+	public String addChunk(ChunkPos pos) {
+		//dummy code for compiler
+		cap.put(pos, new ChunkData(pos));
+		return "";}
 	
 	public String updateChunk(ChunkPos ck, Map<String, String> values) {return "";}
 	
-	public ChunkData getChunk(ChunkPos) {return new ChunkData();}
+	public ChunkData getChunk(ChunkPos pos) {return new ChunkData(pos);}
 	
 	public String setWhitelist(ChunkPos ck, List<WhitelistItem> whitelist) {return "";}
 	

@@ -1,6 +1,17 @@
 package dicemc.gnc.land;
 
-public interface ChunkData {
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+
+import dicemc.gnc.GnC;
+import dicemc.gnc.setup.Config;
+import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.util.math.ChunkPos;
+
+public class ChunkData {
 	public ChunkPos pos;
 	public UUID owner = GnC.NIL;
 	public UUID renter = GnC.NIL;

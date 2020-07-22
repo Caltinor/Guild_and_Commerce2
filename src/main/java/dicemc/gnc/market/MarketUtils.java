@@ -1,5 +1,16 @@
 package dicemc.gnc.market;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+
+import javax.annotation.Nullable;
+
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
+
 public class MarketUtils {
 	
 	public String createTransaction(MarketItem item) {return "";}
@@ -32,7 +43,7 @@ public class MarketUtils {
 		return list;
 	}
 	
-	public List<String> getBidHistory(Int TransactionID, int page) {
+	public List<String> getBidHistory(int TransactionID, int page) {
 		List<String> list = new ArrayList<String>();
 		return list;	
 	}

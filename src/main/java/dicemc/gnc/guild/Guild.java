@@ -1,6 +1,8 @@
 package dicemc.gnc.guild;
 
 import java.sql.ResultSet;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 import net.minecraft.nbt.CompoundNBT;

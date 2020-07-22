@@ -28,6 +28,9 @@ public class Config {
 	public static ForgeConfigSpec.ConfigValue<String> DB2_USER;
 	public static ForgeConfigSpec.ConfigValue<String> DB2_PASS;
 	public static ForgeConfigSpec.ConfigValue<String> DB2_SUFFIX;
+	//
+	public static ForgeConfigSpec.ConfigValue<Double> DEFAULT_LAND_PRICE;
+	public static ForgeConfigSpec.ConfigValue<Long> TEMPCLAIM_DURATION;
 	
 	static {
 		ForgeConfigSpec.Builder SERVER_BUILDER = new ForgeConfigSpec.Builder();

@@ -44,7 +44,7 @@ public class TableDefinitions {
 	public static final Map<tblPermLevels, String> map_PermLevels = define_PermLevels();
 	private static Map<tblPermLevels, String> define_PermLevels() {
 		Map<tblPermLevels, String> map = new HashMap<tblPermLevels, String>();
-		map.put(tblPermLevels.TABLE_NAME, "tbl_permlevels_"+ suffix);
+		map.put(tblPermLevels.TABLE_NAME, "tbl_permlevels_");
 		map.put(tblPermLevels.ID, "ID");
 		map.put(tblPermLevels.GUILD_ID, "Guild_ID");
 		map.put(tblPermLevels.RANK, "Rank");
@@ -56,7 +56,7 @@ public class TableDefinitions {
 	public static final Map<tblPermissions, String> map_Permissions = define_Permissions();
 	private static Map<tblPermissions, String> define_Permissions() {
 		Map<tblPermissions, String> map = new HashMap<tblPermissions, String>();
-		map.put(tblPermissions.TABLE_NAME, "tbl_permissions_" + suffix);
+		map.put(tblPermissions.TABLE_NAME, "tbl_permissions_");
 		map.put(tblPermissions.ID, "ID");
 		map.put(tblPermissions.GUILD_ID, "Guild_ID");
 		map.put(tblPermissions.PERM_TAG, "Perm_Tag");
@@ -68,7 +68,7 @@ public class TableDefinitions {
 	public static final Map<tblMembers, String> map_Members = define_Members();
 	private static Map<tblMembers, String> define_Members() {
 		Map<tblMembers, String> map = new HashMap<tblMembers, String>();
-		map.put(tblMembers.TABLE_NAME, "tbl_members_" +suffix);
+		map.put(tblMembers.TABLE_NAME, "tbl_members_");
 		map.put(tblMembers.ID, "ID");
 		map.put(tblMembers.GUILD_ID, "Guild_ID");
 		map.put(tblMembers.UUID, "UUID");
@@ -77,10 +77,10 @@ public class TableDefinitions {
 	}
 	
 	public static enum tblAccounts {TABLE_NAME, ID, OWNER, BALANCE}
-	public static final Map<tblAccounts, String) map_Accounts = define_Accounts();
-	private static Map<tblAccounts, String) define_Accounts() {
+	public static final Map<tblAccounts, String> map_Accounts = define_Accounts();
+	private static Map<tblAccounts, String> define_Accounts() {
 		Map<tblAccounts, String> map = new HashMap<tblAccounts, String>();
-		map.put(tblAccounts.TABLE_NAME, "tbl_accounts_" +suffix);
+		map.put(tblAccounts.TABLE_NAME, "tbl_accounts_");
 		map.put(tblAccounts.ID, "ID");
 		map.put(tblAccounts.OWNER, "Owner");
 		map.put(tblAccounts.BALANCE, "Balance");
@@ -93,7 +93,7 @@ public class TableDefinitions {
 	public static final Map<tblChunk, String> map_Chunk = define_Chunk();
 	private static Map<tblChunk, String> define_Chunk() {
 		Map<tblChunk, String> map = new HashMap<tblChunk, String>();
-		map.put(tblChunk.TABLE_NAME, "tbl_chunk_" + suffix);
+		map.put(tblChunk.TABLE_NAME, "tbl_chunk_");
 		map.put(tblChunk.CHUNK_X, "chunk_X");
 		map.put(tblChunk.CHUNK_Z, "chunk_Z");
 		map.put(tblChunk.OWNER, "Owner");
@@ -113,8 +113,8 @@ public class TableDefinitions {
 	public static enum tblWhitelist {TABLE_NAME, ID, CHUNK_POS, BLOCK, ENTITY, CAN_BREAK, CAN_INTERACT}
 	public static final Map<tblWhitelist, String> map_Whitelist = define_Whitelist();
 	private static Map<tblWhitelist, String> define_Whitelist() {
-		Map<tblWhitelist, String> map = HashMap<tblWhitelist, String>();
-		map.put(tblWhitelist.TABLE_NAME, "tbl_whitelist_" + suffix);
+		Map<tblWhitelist, String> map = new HashMap<tblWhitelist, String>();
+		map.put(tblWhitelist.TABLE_NAME, "tbl_whitelist_");
 		map.put(tblWhitelist.ID, "ID");
 		map.put(tblWhitelist.CHUNK_POS, "pos");
 		map.put(tblWhitelist.BLOCK, "block");
@@ -128,7 +128,7 @@ public class TableDefinitions {
 	public static final Map<tblPermittedPlayers, String> map_PermittedPlayers = define_PermittedPlayers();
 	private static Map<tblPermittedPlayers, String> define_PermittedPlayers() {
 		Map<tblPermittedPlayers, String> map = new HashMap<tblPermittedPlayers, String>();
-		map.put(tblPermittedPlayers.TABLE_NAME, "tbl_permitted_players_" + suffix);
+		map.put(tblPermittedPlayers.TABLE_NAME, "tbl_permitted_players_");
 		map.put(tblPermittedPlayers.ID, "ID");
 		map.put(tblPermittedPlayers.UUID, "UUID");
 		map.put(tblPermittedPlayers.PRINCIPAL, "principal");
@@ -141,7 +141,7 @@ public class TableDefinitions {
 	public static final Map<tblMarkets, String> map_Markets = define_Markets();
 	private static Map<tblMarkets, String> define_Markets() {
 		Map<tblMarkets, String> map = new HashMap<tblMarkets, String>();
-		map.put(tblMarkets.TABLE_NAME, "tbl_markets_" + suffix);
+		map.put(tblMarkets.TABLE_NAME, "tbl_markets_");
 		map.put(tblMarkets.ID, "ID");
 		map.put(tblMarkets.MARKET_TYPE, "type");
 		map.put(tblMarkets.ITEM, "Item");
@@ -153,7 +153,6 @@ public class TableDefinitions {
 		map.put(tblMarkets.STOCK, "Stock");
 		map.put(tblMarkets.ACTIVE_TRANSACTION, "active");
 		map.put(tblMarkets.BUYER_ID, "buyer");
-		map.put(tblMarkets.
 		return map;
 	}
 	
@@ -161,7 +160,7 @@ public class TableDefinitions {
 	public static final Map<tblBids, String> map_Bids = define_Bids();
 	private static Map<tblBids, String> define_Bids() {
 		Map<tblBids, String> map = new HashMap<tblBids, String>();
-		map.put(tblBids.TABLE_NAME, "tbl_bids_" + suffix);
+		map.put(tblBids.TABLE_NAME, "tbl_bids_");
 		map.put(tblBids.ID, "ID");
 		map.put(tblBids.TRANSACTION_ID, "trans_ID");
 		map.put(tblBids.BIDDER_ID, "bidder");
@@ -174,7 +173,7 @@ public class TableDefinitions {
 	public static final Map<tblStorage, String> map_Storage = define_Storage();
 	private static Map<tblStorage, String> define_Storage() {
 		Map<tblStorage, String> map = new HashMap<tblStorage, String>();
-		map.put(tblStorage.TABLE_NAME, "tbl_storage_" + suffix);
+		map.put(tblStorage.TABLE_NAME, "tbl_storage_");
 		map.put(tblStorage.ID, "ID");
 		map.put(tblStorage.OWNER, "Owner");
 		map.put(tblStorage.ITEM, "Item");

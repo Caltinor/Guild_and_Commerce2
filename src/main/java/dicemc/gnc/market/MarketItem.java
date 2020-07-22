@@ -1,6 +1,11 @@
 package dicemc.gnc.market;
 
+import java.sql.ResultSet;
 import java.util.UUID;
+
+import dicemc.gnc.GnC;
+import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.CompoundNBT;
 
 public class MarketItem {
 	public int id = -1;
@@ -15,14 +20,14 @@ public class MarketItem {
 	public boolean active = true;
 	public UUID buyer = GnC.NIL;
 	public long dtgPlaced;
-	public long dtgBought = null;
+	public long dtgBought = 0;
 	
-	public MarketItem(int type, ItemStack item, UUID vendor, int locality, @Nullable long bidEnd, double price, boolean giveItem) {
+	public MarketItem(int type, ItemStack item, UUID vendor, int locality,long bidEnd, double price, boolean giveItem) {
 		this.marketType = type;
 		this.item = item;
 		this.vendor = vendor;
 		this.locality = locality;
-		this.bidEnd = bidEnd == null ? null : bidEnd;
+		this.bidEnd = bidEnd;
 		this.price = price;
 		this.giveItem = giveItem;
 		dtgPlaced = System.currentTimeMillis();
@@ -32,5 +37,5 @@ public class MarketItem {
 	
 	public MarketItem(CompoundNBT nbt) {}
 	
-	public CompountNBT toNBT() {return new CompoundNBT();}
+	public CompoundNBT toNBT() {return new CompoundNBT();}
 }

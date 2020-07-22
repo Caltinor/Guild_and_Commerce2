@@ -2,6 +2,7 @@ package dicemc.gnc.setup;
 
 import dicemc.gnc.GnC;
 import dicemc.gnc.database.DatabaseManager;
+import dicemc.gnc.land.ChunkManager;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;

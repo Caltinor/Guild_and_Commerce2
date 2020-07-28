@@ -30,8 +30,17 @@ public class SQLBuilder {
 	 * each map list should be in sequence with all keys.
 	 * @return a complete SQL string.
 	 */
-	public static String buildINSERT(String table, Map<String, List<String>> fieldsAndValues) {
-		return "";
+	public static String buildINSERT(String table, Map<String, String> fieldsAndValues) {
+		String SQL = "INSERT INTO " + table;
+		String sub = "VALUES (";
+		for (Map.Entry<String, String> entry : fieldsAndValues.entrySet()) {
+			SQL += entry.getKey() + ", ";
+			sub += entry.getValue()+ ", ";
+		}
+		SQL = SQL.length() > 1 ? SQL.substring(0, SQL.length() -2) : SQL;
+		sub = sub.length() > 1 ? sub.substring(0, sub.length() -2) : sub;
+		SQL += " " + sub + ")";
+		return SQL;
 	}
 	
 	/**
@@ -42,7 +51,13 @@ public class SQLBuilder {
 	 * @return a complete SQL string
 	 */
 	public static String buildUPDATE(String table, Map<String, String> fieldsAndValues, String conditions) {
-		return "";
+		String SQL = "UPDATE " + table + " SET ";
+		for (Map.Entry<String, String> field : fieldsAndValues.entrySet()) {
+			SQL += field.getKey() + " = " + field.getValue() +", ";
+		}
+		SQL = SQL.length() > 1 ? SQL.substring(0, SQL.length() -2) : SQL;
+		SQL += " WHERE " + conditions;
+		return SQL;
 	}
 	
 	/**
@@ -51,7 +66,7 @@ public class SQLBuilder {
 	 * @param conditions a SQL string for what follows "WHERE ".
 	 * @return a complete SQL string
 	 */
-	public static String buildDELETE(String table, String conditions) {
-		return "";
+	public static String buildDELETE(String table, String conditions) { 
+		return "DELETE FROM "+ table + " WHERE " + conditions;
 	}
 }

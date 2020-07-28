@@ -13,7 +13,8 @@ import net.minecraftforge.fml.event.server.FMLServerStartingEvent;
 @Mod.EventBusSubscriber(modid = GnC.MOD_ID, bus = Mod.EventBusSubscriber.Bus.FORGE)
 public class CommonSetup {
 	public static void init(final FMLCommonSetupEvent event) {
-		Networking.registerMessages();		
+		Networking.registerMessages();
+		GnC.ckMgr = new ChunkManager();
 	}
 	
 	@SubscribeEvent
@@ -22,6 +23,5 @@ public class CommonSetup {
 		else GnC.worldSaver = new WorldWSD();
 		if (Config.MARKET_USE_DB.get()) GnC.DBM_ALT = new DatabaseManager(false);
 		else GnC.marketSaver = new MarketWSD();
-		GnC.ckMgr = new ChunkManager();
 	}
 }

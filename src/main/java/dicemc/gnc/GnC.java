@@ -23,7 +23,7 @@ public class GnC {
 	public static MarketWSD marketSaver;
 	public static WorldWSD worldSaver;
 	public static ChunkManager ckMgr;
-	public static UUID NIL = UUID.fromString("");
+	public static UUID NIL = UUID.fromString("00000000-0000-0000-0000-000000000000");
 	
 	public GnC() {
 		ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT, Config.CLIENT_CONFIG);

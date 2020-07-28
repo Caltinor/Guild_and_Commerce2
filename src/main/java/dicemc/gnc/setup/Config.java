@@ -115,6 +115,39 @@ public class Config {
 	private static void setupBlockMisc(ForgeConfigSpec.Builder builder) {
 		builder.comment("Miscellaneous configuration settings").push(SUB_CATEGORY_MISC);
 		//TODO populate with misc variables
+		DEFAULT_LAND_PRICE = builder.comment("The price of land when generating for the first time.")
+				.defineInRange("default_land_price", 100D, 0, Integer.MAX_VALUE);
+		TEMPCLAIM_DURATION = builder.comment("The length of time (in miliseconds) a temp claim is protected for.")
+				.defineInRange("tempclaim_duration", 43200000L, 0, Long.MAX_VALUE);
+		CHUNKS_PER_MEMBER = builder.comment("The number of chunks claimable per member that is untaxed.)")
+				.defineInRange("chunks_per_member", 9, 0, Integer.MAX_VALUE);
+		GLOBAL_TAX_RATE = builder.comment("The global tax applied to all guilds when triggered.")
+				.defineInRange("global_tax_rate", 0.1, 0, 1D);
+		GLOBAL_TAX_INTERVAL = builder.comment("The interval in miliseconds between guild taxation.")
+				.defineInRange("global_tax_interval", 864000L, 0, Long.MAX_VALUE);
+		TEMPCLAIM_RATE = builder.comment("The percentage of the land's cost that must be paid to temporarily claim land.")
+				.defineInRange("tempclaim_rate", 0.1, 0, 1D);
+		LAND_ABANDON_REFUND_RATE = builder.comment("The percentage refunded to the guild when abandoning claims.")
+				.defineInRange("land_abandon_refund_rate", 0.75, 0, 1D);
+		GUILD_CREATE_COST = builder.comment("The cost to create a new guild.")
+				.defineInRange("guild_create_cost", 2500D, 0, Double.MAX_VALUE);
+		OUTPOST_CREATE_COST = builder.comment("The cost to establish a new outpost.")
+				.defineInRange("outpost_create_cost", 2000D, 0, Double.MAX_VALUE);
+		STARTING_FUNDS = builder.comment("The amount of money a new player starts with when first joining the world.")
+				.defineInRange("starting_funds", 1000D, 0, Double.MAX_VALUE);
+		GUILD_STARTING_FUNDS = builder.comment("An amount of money given to guilds after creation.  This serves as a rebate to guild creation.")
+				.defineInRange("guild_starting_funds", 0D, 0, Double.MAX_VALUE);
+		MARKET_GLOBAL_TAX_BUY = builder.comment("The percentage of the posting price added on when being purchased on the global market.")
+				.defineInRange("market_global_tax_buy", 0.1D, 0, 1D);
+		MARKET_GLOBAL_TAX_SELL = builder.comment("The percentage of the posting price charged when being added to the global market.")
+				.defineInRange("market_global_tax_sell", 0.1D, 0, 1D);
+		MARKET_AUCTION_TAX_SELL = builder.comment("the fee, as a percent of the price, applied when creating a new auction.")
+				.defineInRange("market_auction_tax_sell", 0.3, 0, 1D);
+		UNOWNED_PROTECTED = builder.comment("Determines if unowned land is protected. setting to false will make only land that is purchased protected.")
+				.define("unowned_protected", true);
+		AUCTION_OPEN_DURATION = builder.comment("The length of time, in milliseconds, an auction remains open for bidding.")
+				.defineInRange("auction_open_duration", 259200000L, 0, Long.MAX_VALUE);
+		
 		builder.pop();
 	}
 	

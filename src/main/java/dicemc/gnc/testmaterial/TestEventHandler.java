@@ -9,7 +9,7 @@ import net.minecraftforge.fml.event.server.FMLServerStartingEvent;
 
 @Mod.EventBusSubscriber
 public class TestEventHandler {
-	public static MySQLCon dbConn;
+	/*public static MySQLCon dbConn;
 
 	@SubscribeEvent
 	public static void onServerStart(FMLServerStartingEvent event) {
@@ -24,11 +24,10 @@ public class TestEventHandler {
 			int oldZ = event.getOldChunkZ();
 			int newX = event.getNewChunkX();
 			int newZ = event.getNewChunkZ();
-			if (oldX != newX || oldZ != newZ) {
+			if (oldX != newX || oldZ != newZ && event.getEntity().world.isRemote) {
 				event.getEntity().sendMessage(new StringTextComponent("Entering: ("+String.valueOf(newX)+", "+String.valueOf(newZ)+")."), event.getEntity().getUniqueID());
 			}
 		}
-	}
-
+	}*/
 }
 

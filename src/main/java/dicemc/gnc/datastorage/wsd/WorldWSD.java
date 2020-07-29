@@ -2,8 +2,6 @@ package dicemc.gnc.datastorage.wsd;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.function.Supplier;
-
 import dicemc.gnc.GnC;
 import dicemc.gnc.guild.Guild;
 import dicemc.gnc.land.ChunkData;
@@ -11,11 +9,10 @@ import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.nbt.ListNBT;
 import net.minecraft.util.math.ChunkPos;
 import net.minecraft.world.server.ServerWorld;
-import net.minecraft.world.storage.DimensionSavedDataManager;
 import net.minecraft.world.storage.WorldSavedData;
 import net.minecraftforge.common.util.Constants;
 
-public class WorldWSD extends WorldSavedData implements Supplier<WorldWSD>{
+public class WorldWSD extends WorldSavedData{
 	private static final String DATA_NAME = GnC.MOD_ID + "_Guild";
 	
 	private Map<Integer, Guild> GUILDS = new HashMap<Integer, Guild>();
@@ -31,7 +28,10 @@ public class WorldWSD extends WorldSavedData implements Supplier<WorldWSD>{
 		ListNBT list = nbt.getList("guildlist", Constants.NBT.TAG_COMPOUND);
 		for (int i = 0; i < list.size(); i++) {GUILDS.put(list.getCompound(i).getInt("ID"), new Guild(list.getCompound(i).getCompound("guild"))); }
 		list = nbt.getList("chunklist", Constants.NBT.TAG_COMPOUND);
-		for (int i = 0; i < list.size(); i++) {CHUNKS.put(new ChunkPos(list.getCompound(i).getLong("pos")), new ChunkData(list.getCompound(i).getCompound("data")));}
+		for (int i = 0; i < list.size(); i++) {
+			ChunkData ck = new ChunkData(list.getCompound(i));
+			CHUNKS.put(ck.pos, ck);
+		}
 	}
 
 	@Override
@@ -47,29 +47,13 @@ public class WorldWSD extends WorldSavedData implements Supplier<WorldWSD>{
 		compound.put("guildlist", list);
 		list = new ListNBT();
 		for (Map.Entry<ChunkPos, ChunkData> entry :CHUNKS.entrySet()) {
-			CompoundNBT snbt = new CompoundNBT();
-			snbt.putLong("pos", entry.getKey().asLong());
-			snbt.put("data", entry.getValue().toNBT());
-			list.add(snbt);
+			list.add(entry.getValue().toNBT());
 		}
 		compound.put("chunklist", list);
 		return compound;
 	}
-	
-	public static WorldWSD forWorld(ServerWorld world) {
-		DimensionSavedDataManager storage = world.getSavedData();
-		Supplier<WorldWSD> sup = new WorldWSD();
-		WorldWSD instance = (WorldWSD) storage.getOrCreate(sup, GnC.MOD_ID);
-		
-		if (instance == null) {
-			instance = new WorldWSD();
-			storage.set(instance);
-		}
-		return instance;
-	}
 
-	@Override
-	public WorldWSD get() {
-		return this;
+	public static WorldWSD get(ServerWorld world) {
+		return world.getSavedData().getOrCreate(WorldWSD::new, DATA_NAME);
 	}
 }

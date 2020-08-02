@@ -16,14 +16,14 @@ public class DatabaseManager {
 	private String suffix;
 	public TableDefinitions td;
 	
-	public DatabaseManager(boolean usePrimary) {
-		String port = usePrimary ? Config.DB_PORT.get() : Config.DB2_PORT.get();
-		String name = usePrimary ? Config.DB_NAME.get() : Config.DB2_NAME.get();
-		String url  = usePrimary ? Config.DB_URL.get() : Config.DB2_URL.get();
+	public DatabaseManager() {
+		String port = Config.DB_PORT.get();
+		String name = Config.DB_NAME.get();
+		String url  = Config.DB_URL.get();
 		String host = "jdbc:mysql://" + url + ":" + port + "/" + name;;
-		String user = usePrimary ? Config.DB_USER.get() : Config.DB2_USER.get();
-		String pass = usePrimary ? Config.DB_PASS.get() : Config.DB2_PASS.get();
-		suffix = usePrimary ? Config.DB_SUFFIX.get() : Config.DB2_SUFFIX.get();
+		String user = Config.DB_USER.get();
+		String pass = Config.DB_PASS.get();
+		suffix = Config.DB_SUFFIX.get();
 		
 		td = new TableDefinitions(suffix);
 		try {

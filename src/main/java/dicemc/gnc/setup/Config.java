@@ -19,7 +19,6 @@ public class Config {
 	public static final String SUB_CATEGORY_MISC = "Misc Variables";
 	
 	//Data Storage Scheme Variables
-	public static ForgeConfigSpec.ConfigValue<Boolean> WORLD_USE_DB;
 	public static ForgeConfigSpec.ConfigValue<Boolean> MARKET_USE_DB;
 	//Primary Database config values
 	public static ForgeConfigSpec.ConfigValue<String> DB_PORT;
@@ -28,13 +27,6 @@ public class Config {
 	public static ForgeConfigSpec.ConfigValue<String> DB_USER;
 	public static ForgeConfigSpec.ConfigValue<String> DB_PASS;
 	public static ForgeConfigSpec.ConfigValue<String> DB_SUFFIX;
-	//Alternate Database config values
-	public static ForgeConfigSpec.ConfigValue<String> DB2_PORT;
-	public static ForgeConfigSpec.ConfigValue<String> DB2_NAME;
-	public static ForgeConfigSpec.ConfigValue<String> DB2_URL;
-	public static ForgeConfigSpec.ConfigValue<String> DB2_USER;
-	public static ForgeConfigSpec.ConfigValue<String> DB2_PASS;
-	public static ForgeConfigSpec.ConfigValue<String> DB2_SUFFIX;
 	//Miscellaneous configurable variables
 	public static ForgeConfigSpec.ConfigValue<Double> DEFAULT_LAND_PRICE;
 	public static ForgeConfigSpec.ConfigValue<Long> TEMPCLAIM_DURATION;
@@ -61,12 +53,11 @@ public class Config {
 		CLIENT_BUILDER.comment("Client Settings").push(CATEGORY_CLIENT);
 		CLIENT_BUILDER.pop();
 		
-		COMMON_BUILDER.comment("Common Settings").push(CATEGORY_COMMON);
-		setupBlockStorageScheme(COMMON_BUILDER);
-		setupBlockConfig_DB(COMMON_BUILDER);
+		COMMON_BUILDER.comment("Common Settings").push(CATEGORY_COMMON);		
 		COMMON_BUILDER.pop();
 		
-		SERVER_BUILDER.comment("Server Settings").push(CATEGORY_SERVER);		
+		SERVER_BUILDER.comment("Server Settings").push(CATEGORY_SERVER);	
+		setupBlockConfig_DB(COMMON_BUILDER);
 		setupBlockMisc(COMMON_BUILDER);
 		SERVER_BUILDER.pop();
 		
@@ -78,7 +69,9 @@ public class Config {
 	private static void setupBlockConfig_DB(ForgeConfigSpec.Builder builder) {
 		builder.comment("Database Settings").push(SUB_CATEGORY_DB);
 		
-		//Primary Database location
+		MARKET_USE_DB = builder.comment("Determines if the server will use the secondary database settings for Market data or store internally")
+				.define("market_use_DB", false);
+		//Database location
 		DB_PORT = builder.comment("Database port")
 				.define("port", "3306");
 		DB_NAME = builder.comment("Database name")
@@ -91,32 +84,8 @@ public class Config {
 				.define("pass", "pass");
 		DB_SUFFIX = builder.comment("Database Table Suffix.  Used to create separate tables for separate worlds within the same DB")
 				.define("suffix", "world");
-		//Secondary (Market/Account) database 
-		DB2_PORT = builder.comment("Alternate Database port")
-				.define("port2", "3306");
-		DB2_NAME = builder.comment("Alternate Database name")
-				.define("name2", "new_Schema");
-		DB2_URL = builder.comment("Alternate Database URL")
-				.define("url2", "localhost");
-		DB2_USER = builder.comment("Alternate Database Username")
-				.define("user2", "user");
-		DB2_PASS = builder.comment("Alternate Database Password")
-				.define("pass2", "pass");
-		DB2_SUFFIX = builder.comment("Alternate Database Table Suffix.  Used to create separate tables for separate worlds within the same DB")
-				.define("suffix2", "world");
 		
 		builder.pop();		
-	}
-	
-	private static void setupBlockStorageScheme(ForgeConfigSpec.Builder builder) {
-		builder.comment("Server Storage Scheme").push(SUB_CATEGORY_STORAGE);
-		
-		WORLD_USE_DB = builder.comment("Determines if the server will use the primary database settings for world data or store internally")
-				.define("world_use_DB", false);
-		MARKET_USE_DB = builder.comment("Determines if the server will use the secondary database settings for Market data or store internally")
-				.define("market_use_DB", false);
-		
-		builder.pop();
 	}
 	
 	private static void setupBlockMisc(ForgeConfigSpec.Builder builder) {

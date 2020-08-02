@@ -18,7 +18,7 @@ import dicemc.gnc.setup.Config;
 public class GnC {
 	public static final String MOD_ID = "gnc";
 	public static final UUID NIL = UUID.fromString("00000000-0000-0000-0000-000000000000");
-	public static DatabaseManager DBM_MAIN, DBM_ALT;
+	public static DatabaseManager DBMgr;
 	public static ChunkManager ckMgr;
 	
 	public GnC() {
@@ -28,7 +28,6 @@ public class GnC {
 		
 		FMLJavaModLoadingContext.get().getModEventBus().addListener(CommonSetup::init);
 		FMLJavaModLoadingContext.get().getModEventBus().addListener(ClientSetup::init);
-		FMLJavaModLoadingContext.get().getModEventBus().addListener(CommonSetup::onLoadComplete);
 		
 		MinecraftForge.EVENT_BUS.register(this);
 	}	

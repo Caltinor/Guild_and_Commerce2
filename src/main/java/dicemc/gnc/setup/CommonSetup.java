@@ -6,22 +6,18 @@ import dicemc.gnc.land.ChunkManager;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
-import net.minecraftforge.fml.event.lifecycle.FMLLoadCompleteEvent;
-import net.minecraftforge.fml.event.server.FMLServerStartingEvent;
+import net.minecraftforge.fml.event.server.FMLServerStartedEvent;
 
 @Mod.EventBusSubscriber(modid = GnC.MOD_ID, bus = Mod.EventBusSubscriber.Bus.FORGE)
 public class CommonSetup {
 	public static void init(final FMLCommonSetupEvent event) {
 		Networking.registerMessages();
-		GnC.ckMgr = new ChunkManager();			
-	}
-	
-	public static void onLoadComplete(final FMLLoadCompleteEvent event) {
-		if (Config.WORLD_USE_DB.get())  {GnC.DBM_MAIN = new DatabaseManager(true);}
-		if (Config.MARKET_USE_DB.get()) {GnC.DBM_ALT = new DatabaseManager(false);}
+		GnC.ckMgr = new ChunkManager();	
+		//TODO guild Manager
 	}
 	
 	@SubscribeEvent
-	public static void onServerStart(FMLServerStartingEvent event) {		
+	public static void onServerStart(FMLServerStartedEvent event) {
+		if (Config.MARKET_USE_DB.get())  {GnC.DBMgr = new DatabaseManager();}
 	}
 }

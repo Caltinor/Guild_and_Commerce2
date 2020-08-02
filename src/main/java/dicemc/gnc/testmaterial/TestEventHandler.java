@@ -32,7 +32,7 @@ public class TestEventHandler {
 			int newZ = event.getNewChunkZ();
 			if (oldX != newX || oldZ != newZ) {
 				ChunkData ref = GnC.ckMgr.getChunk(new ChunkPos(newX, newZ));
-				event.getEntity().sendMessage(new StringTextComponent("Entering: "), event.getEntity().getUniqueID());
+				event.getEntity().sendMessage(new StringTextComponent("Entering: " +ref.pos.toString() + " $"+String.valueOf(ref.price)), event.getEntity().getUniqueID());
 				//		" $"+String.valueOf(GnC.ckMgr.getChunk(new ChunkPos(newX, newZ)).price)), event.getEntity().getUniqueID());
 			}
 		}

@@ -16,13 +16,29 @@ public class TableDefinitions {
 		String tblSTR = "";
 		//Guild Table
 		tblSTR = map_Guild.get(tblGuild.TABLE_NAME) + suffix;
-		sqlSTR = " ("+ map_Guild.get(tblGuild.GUILD_ID)+"INT NOT NULL AUTO_INCREMENT, " + 
-				map_Guild.get(tblGuild.NAME) +"VARCHAR(32) NOT NULL, " + 
-				map_Guild.get(tblGuild.OPEN) +"TINYINT(1) NOT NULL, " + 
-				map_Guild.get(tblGuild.TAX) +"DOUBLE NOT NULL, " + 
+		sqlSTR = " ("+ map_Guild.get(tblGuild.GUILD_ID)+" INT NOT NULL AUTO_INCREMENT, " + 
+				map_Guild.get(tblGuild.NAME) +" VARCHAR(32) NOT NULL, " + 
+				map_Guild.get(tblGuild.OPEN) +" TINYINT(1) NOT NULL, " + 
+				map_Guild.get(tblGuild.TAX) +" DOUBLE NOT NULL, " + 
 				"PRIMARY KEY ("+ map_Guild.get(tblGuild.GUILD_ID) +"))";
 		map.put(tblSTR, sqlSTR);
-		//Other table
+		//Chunk table
+		tblSTR = map_Chunk.get(tblChunk.TABLE_NAME) + suffix;
+		sqlSTR = " ("+ map_Chunk.get(tblChunk.CHUNK_X)+" INT NOT NULL, " +
+				map_Chunk.get(tblChunk.CHUNK_Z)			+" INT NOT NULL, " +
+				map_Chunk.get(tblChunk.OWNER)			+" VARCHAR(36) NOT NULL, " +
+				map_Chunk.get(tblChunk.TEMP_RENTER)		+" VARCHAR(36) NOT NULL, " +
+				map_Chunk.get(tblChunk.PRICE)			+" DOUBLE NOT NULL, " +
+				map_Chunk.get(tblChunk.PRICE_LEASE)		+" DOUBLE NOT NULL, " +
+				map_Chunk.get(tblChunk.LEASE_DURATION)	+" INT NOT NULL, " +
+				map_Chunk.get(tblChunk.PERM_MIN)		+" INT NOT NULL, " +
+				map_Chunk.get(tblChunk.RENT_END)		+" MEDIUMTEXT NOT NULL, " +  /*MEDIUMTEXT = Long*/
+				map_Chunk.get(tblChunk.IS_PUBLIC)		+" TINYINT(1) NOT NULL, " +
+				map_Chunk.get(tblChunk.IS_FOR_SALE)		+" TINYINT(1) NOT NULL, " +
+				map_Chunk.get(tblChunk.IS_OUTPOST)		+" TINYINT(1) NOT NULL, " +
+				map_Chunk.get(tblChunk.CAN_EXPLOSIONS)	+" TINYINT(1) NOT NULL, " +
+				"PRIMARY KEY ("+map_Chunk.get(tblChunk.CHUNK_X)+", "+map_Chunk.get(tblChunk.CHUNK_Z)+"))";
+		map.put(tblSTR, sqlSTR);
 		//repeat
 		//TODO: Build Table Creation Definitions
 		return map;
@@ -96,7 +112,7 @@ public class TableDefinitions {
 		map.put(tblChunk.TABLE_NAME, "tbl_chunk_");
 		map.put(tblChunk.CHUNK_X, "chunk_X");
 		map.put(tblChunk.CHUNK_Z, "chunk_Z");
-		map.put(tblChunk.OWNER, "Owner");
+		map.put(tblChunk.OWNER, "land_owner");
 		map.put(tblChunk.TEMP_RENTER, "temp_plyr");
 		map.put(tblChunk.PRICE, "Price");
 		map.put(tblChunk.PRICE_LEASE, "lease_price");

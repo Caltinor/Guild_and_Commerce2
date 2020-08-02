@@ -6,11 +6,13 @@ import net.minecraftforge.fml.config.ModConfig;
 
 public class Config {
 	
-	public static ForgeConfigSpec SERVER_CONFIG;
+	public static ForgeConfigSpec COMMON_CONFIG;
 	public static ForgeConfigSpec CLIENT_CONFIG;
+	public static ForgeConfigSpec SERVER_CONFIG;
 	
 	public static final String CATEGORY_SERVER = "server";
 	public static final String CATEGORY_CLIENT = "client";
+	public static final String CATEGORY_COMMON = "common";
 	
 	public static final String SUB_CATEGORY_STORAGE = "Storage Scheme";
 	public static final String SUB_CATEGORY_DB = "database";
@@ -52,19 +54,24 @@ public class Config {
 	public static ForgeConfigSpec.ConfigValue<Long> AUCTION_OPEN_DURATION;
 	
 	static {
-		ForgeConfigSpec.Builder SERVER_BUILDER = new ForgeConfigSpec.Builder();
+		ForgeConfigSpec.Builder COMMON_BUILDER = new ForgeConfigSpec.Builder();
 		ForgeConfigSpec.Builder CLIENT_BUILDER = new ForgeConfigSpec.Builder();
+		ForgeConfigSpec.Builder SERVER_BUILDER = new ForgeConfigSpec.Builder();
 		
 		CLIENT_BUILDER.comment("Client Settings").push(CATEGORY_CLIENT);
 		CLIENT_BUILDER.pop();
 		
-		SERVER_BUILDER.comment("Server Settings").push(CATEGORY_SERVER);
-		setupBlockStorageScheme(SERVER_BUILDER);
-		setupBlockConfig_DB(SERVER_BUILDER);
-		setupBlockMisc(SERVER_BUILDER);
+		COMMON_BUILDER.comment("Common Settings").push(CATEGORY_COMMON);
+		setupBlockStorageScheme(COMMON_BUILDER);
+		setupBlockConfig_DB(COMMON_BUILDER);
+		COMMON_BUILDER.pop();
+		
+		SERVER_BUILDER.comment("Server Settings").push(CATEGORY_SERVER);		
+		setupBlockMisc(COMMON_BUILDER);
 		SERVER_BUILDER.pop();
 		
 		CLIENT_CONFIG = CLIENT_BUILDER.build();
+		COMMON_CONFIG = COMMON_BUILDER.build();
 		SERVER_CONFIG = SERVER_BUILDER.build();
 	}
 	
@@ -86,17 +93,17 @@ public class Config {
 				.define("suffix", "world");
 		//Secondary (Market/Account) database 
 		DB2_PORT = builder.comment("Alternate Database port")
-				.define("port", "3306");
+				.define("port2", "3306");
 		DB2_NAME = builder.comment("Alternate Database name")
-				.define("name", "new_Schema");
+				.define("name2", "new_Schema");
 		DB2_URL = builder.comment("Alternate Database URL")
-				.define("url", "localhost");
+				.define("url2", "localhost");
 		DB2_USER = builder.comment("Alternate Database Username")
-				.define("user", "user");
+				.define("user2", "user");
 		DB2_PASS = builder.comment("Alternate Database Password")
-				.define("pass", "pass");
+				.define("pass2", "pass");
 		DB2_SUFFIX = builder.comment("Alternate Database Table Suffix.  Used to create separate tables for separate worlds within the same DB")
-				.define("suffix", "world");
+				.define("suffix2", "world");
 		
 		builder.pop();		
 	}

@@ -27,11 +27,13 @@ public class DatabaseManager {
 		
 		td = new TableDefinitions(suffix);
 		try {
+			System.out.println("Attempting DB Connection");
 			con = DriverManager.getConnection(host, user, pass);
 			stmt = con.createStatement();
 			System.out.println("DB Connection Successful");
 		} catch (SQLException e) {e.printStackTrace();}	
 		for (Map.Entry<String, String> entry : td.tableDef.entrySet()) {
+			//TODO add a check in table definitions for whether a table should be checked on DB1 or DB2
 			confirmTable(con, entry);
 		}
 	}
@@ -40,8 +42,8 @@ public class DatabaseManager {
 		try {
 			Statement st = con.createStatement();
 			DatabaseMetaData dbm = con.getMetaData();
-			 ResultSet rs = dbm.getTables(null, null, tbl.getKey(), null);
-			if (rs.next()) {return; } else {
+			ResultSet rs = dbm.getTables(null, null, tbl.getKey(), null);
+			if (rs.isBeforeFirst()) {return; } else {
 				String sqlSTR = "CREATE TABLE "+ tbl.getKey() + tbl.getValue();
 				System.out.println(sqlSTR);
 				st.executeUpdate(sqlSTR);			

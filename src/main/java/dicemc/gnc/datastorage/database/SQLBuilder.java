@@ -20,6 +20,7 @@ public class SQLBuilder {
 		}
 		SQL += " FROM " + table;
 		SQL += " WHERE " + conditions;
+		System.out.println(SQL);
 		return SQL;
 	}
 	
@@ -30,16 +31,22 @@ public class SQLBuilder {
 	 * each map list should be in sequence with all keys.
 	 * @return a complete SQL string.
 	 */
-	public static String buildINSERT(String table, Map<String, String> fieldsAndValues) {
-		String SQL = "INSERT INTO " + table;
+	public static String buildINSERT(String table, List<String> fields, List<List<String>> values) {
+		String SQL = "INSERT INTO " + table + " (";
 		String sub = "VALUES (";
-		for (Map.Entry<String, String> entry : fieldsAndValues.entrySet()) {
-			SQL += entry.getKey() + ", ";
-			sub += entry.getValue()+ ", ";
+		for (int i = 0; i < fields.size(); i++) {
+			SQL += fields.get(i);
+			SQL += (i == fields.size()-1) ? ")" : ", ";
 		}
-		SQL = SQL.length() > 1 ? SQL.substring(0, SQL.length() -2) : SQL;
-		sub = sub.length() > 1 ? sub.substring(0, sub.length() -2) : sub;
-		SQL += " " + sub + ")";
+		for (int i = 0; i < values.size(); i++) {
+			List<String> subList = values.get(i);
+			for (int j = 0; j < subList.size(); j++) {
+				sub += subList.get(j);
+				sub += (j == subList.size()-1) ? ")" : ", ";
+			}
+			sub += (i == values.size()-1) ? "" : ", ";
+		}
+		SQL += " " + sub;
 		return SQL;
 	}
 	
@@ -50,9 +57,9 @@ public class SQLBuilder {
 	 * @param conditions a SQL string for what follows "WHERE ".
 	 * @return a complete SQL string
 	 */
-	public static String buildUPDATE(String table, Map<String, String> fieldsAndValues, String conditions) {
+	public static String buildUPDATE(String table, List<String> fields, Map<String, String> Values, String conditions) {
 		String SQL = "UPDATE " + table + " SET ";
-		for (Map.Entry<String, String> field : fieldsAndValues.entrySet()) {
+		for (Map.Entry<String, String> field : Values.entrySet()) {
 			SQL += field.getKey() + " = " + field.getValue() +", ";
 		}
 		SQL = SQL.length() > 1 ? SQL.substring(0, SQL.length() -2) : SQL;

@@ -1,5 +1,10 @@
-package dicemc.gnc;
+package dicemc.gnc.common;
 
+import org.lwjgl.glfw.GLFW;
+
+import dicemc.gnc.GnC;
+import dicemc.gnc.land.network.PacketOpenGui_Land;
+import dicemc.gnc.setup.Networking;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screen.inventory.InventoryScreen;
 import net.minecraft.client.gui.widget.button.ImageButton;
@@ -32,14 +37,14 @@ public class GuiEventHandler {
 	
 	@SubscribeEvent
 	public static void onKeyPress(KeyInputEvent event) {
-		if (Minecraft.getInstance().currentScreen instanceof InventoryScreen) {
-			if (event.getKey() == 49) {System.out.println("Pressed 1");/*replace with packet to open chunk gui*/}
-			if (event.getKey() == 50) {System.out.println("Pressed 2");/*replace with packet to open market gui*/}
-			if (event.getKey() == 51) {System.out.println("Pressed 3");/*replace with packet to open guild gui*/}
+		if (Minecraft.getInstance().currentScreen instanceof InventoryScreen && event.getAction() == GLFW.GLFW_PRESS) {
+			if (event.getKey() == 49) {chunkGuiLoad();/*replace with packet to open chunk gui*/}
+			if (event.getKey() == 50) {marketGuiLoad();/*replace with packet to open market gui*/}
+			if (event.getKey() == 51) {guildGuiLoad();/*replace with packet to open guild gui*/}
 		}
 	}
 	
-	private static void chunkGuiLoad() {System.out.println("Clicked Chunk Button");}
+	private static void chunkGuiLoad() {Networking.sendToServer(new PacketOpenGui_Land());}
 	private static void marketGuiLoad() {System.out.println("Clicked Market Button");}
 	private static void guildGuiLoad() {System.out.println("Clicked Guild Button");}
 }

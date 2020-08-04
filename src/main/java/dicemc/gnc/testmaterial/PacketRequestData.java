@@ -1,30 +1,22 @@
 package dicemc.gnc.testmaterial;
 
-//import java.util.List;
 import java.util.function.Supplier;
 
 import net.minecraft.network.PacketBuffer;
-//import net.minecraft.util.text.StringTextComponent;
 import net.minecraftforge.fml.network.NetworkEvent;
 
 public class PacketRequestData {
 	
-	private final boolean order;
+	private final int gui;
 	
-	public PacketRequestData(PacketBuffer buf) {order = buf.readBoolean();}
+	public PacketRequestData(PacketBuffer buf) {gui = buf.readInt();}
 	
-	public PacketRequestData(boolean sortOrder) {this.order = sortOrder;}
+	public PacketRequestData(int guiType) {this.gui = guiType;}
 	
-	public void toBytes(PacketBuffer buf) {buf.writeBoolean(order);}
+	public void toBytes(PacketBuffer buf) {buf.writeInt(gui);}
  	
 	public boolean handle(Supplier<NetworkEvent.Context> ctx) {
-		ctx.get().enqueueWork(() -> {
-			/*TestEventHandler.dbConn.callSortedPriceList(order);
-			//List<String> list = TestEventHandler.dbConn.getResults();
-			//for (String str : list) {
-				ctx.get().getSender().sendMessage(new StringTextComponent(str), ctx.get().getSender().getUniqueID());
-			}*/
-		});
+		ctx.get().enqueueWork(() -> {System.out.println("Packet Worked");});
 		return true;
 	}
 }

@@ -15,7 +15,7 @@ public class Networking {
 	private static int nextID() {return ID++;}
 	
 	public static void registerMessages() {
-		INSTANCE = NetworkRegistry.newSimpleChannel(new ResourceLocation(GnC.MOD_ID, "aword"),
+		INSTANCE = NetworkRegistry.newSimpleChannel(new ResourceLocation(GnC.MOD_ID, "net"),
 				() -> "1.0", 
 				s -> true, 
 				s -> true);

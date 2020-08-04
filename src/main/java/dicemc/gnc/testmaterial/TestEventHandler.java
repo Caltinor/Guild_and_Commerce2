@@ -6,6 +6,7 @@ import java.util.Map;
 import dicemc.gnc.GnC;
 import dicemc.gnc.land.ChunkData;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.util.math.ChunkPos;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraftforge.event.entity.EntityEvent.EnteringChunk;

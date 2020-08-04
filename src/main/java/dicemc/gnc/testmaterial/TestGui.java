@@ -30,12 +30,12 @@ public class TestGui extends Screen{
 	private void action() {minecraft.displayGuiScreen(null);}
 	
 	private void callAsc() {
-		Networking.sendToServer(new PacketRequestData(true));
+		Networking.sendToServer(new PacketRequestData(0));
 		action();
 	}
 	
 	private void callDes() {
-		Networking.sendToServer(new PacketRequestData(false));
+		Networking.sendToServer(new PacketRequestData(0));
 		action();
 	}
 

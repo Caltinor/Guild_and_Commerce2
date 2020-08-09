@@ -38,13 +38,13 @@ public class GuiEventHandler {
 	@SubscribeEvent
 	public static void onKeyPress(KeyInputEvent event) {
 		if (Minecraft.getInstance().currentScreen instanceof InventoryScreen && event.getAction() == GLFW.GLFW_PRESS) {
-			if (event.getKey() == 49) {chunkGuiLoad();/*replace with packet to open chunk gui*/}
-			if (event.getKey() == 50) {marketGuiLoad();/*replace with packet to open market gui*/}
-			if (event.getKey() == 51) {guildGuiLoad();/*replace with packet to open guild gui*/}
+			if (event.getKey() == 49) {chunkGuiLoad();}
+			if (event.getKey() == 50) {marketGuiLoad();}
+			if (event.getKey() == 51) {guildGuiLoad();}
 		}
 	}
 	
-	private static void chunkGuiLoad() {Networking.sendToServer(new PacketOpenGui_Land());}
-	private static void marketGuiLoad() {System.out.println("Clicked Market Button");}
-	private static void guildGuiLoad() {System.out.println("Clicked Guild Button");}
+	private static void chunkGuiLoad() {Networking.sendToServer(new PacketGuiRequest(0));}
+	private static void marketGuiLoad() {Networking.sendToServer(new PacketGuiRequest(1));}
+	private static void guildGuiLoad() {Networking.sendToServer(new PacketGuiRequest(2));}
 }

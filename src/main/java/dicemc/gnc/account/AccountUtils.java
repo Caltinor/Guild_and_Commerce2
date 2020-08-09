@@ -1,5 +1,7 @@
 package dicemc.gnc.account;
 
+import java.util.UUID;
+
 public class AccountUtils {
 
     /**
@@ -9,7 +11,7 @@ public class AccountUtils {
     *
     *@param ID guild IDs should be Integer.toString() and player IDs should be UUID.toString()
     */
-    public static String accountExists(String ID) {
+    public static String accountExists(UUID ID) {
     	addAccount(ID, 100); //TODO: replace value with config object
     	return "";
     }
@@ -21,7 +23,7 @@ public class AccountUtils {
     *
     *@param ID guild IDs should be Integer.toString() and player IDs should be UUID.toString()
     */
-    public static double getBalance(String ID) {return 0.0;}
+    public static double getBalance(UUID ID) {return 1337.69;}
     
     /**
     *Overwrites the player/guild balance with the value passed
@@ -31,7 +33,7 @@ public class AccountUtils {
     *@param ID guild IDs should be Integer.toString() and player IDs should be UUID.toString()
     *@param value the amount the account will be set to
     */
-    public static String setBalance(String ID, double value) {return "";}
+    public static String setBalance(UUID ID, double value) {return "";}
     
     /**
     *modifies the player/guild's existing balance by the amount passed.  negative
@@ -42,7 +44,7 @@ public class AccountUtils {
     *@param ID guild IDs should be Integer.toString() and player IDs should be UUID.toString()
     *@param value the amount the account will be changed by
     */
-    public static String changeBalance(String ID, double value) {return "";}
+    public static String changeBalance(UUID ID, double value) {return "";}
     
     /**
     *Transfers funds between accounts.  This can move between players, guilds, or a 
@@ -54,7 +56,7 @@ public class AccountUtils {
     *@param toID the account holder ID that funds are bing put into. guild IDs should be Integer.toString() and player IDs should be UUID.toString()
     *@param value the amount to be transferred (values are always absolute)
     */
-    public static String transferFunds(String fromID, String toID, double value) {return "";}
+    public static String transferFunds(UUID fromID, UUID toID, double value) {return "";}
     
     /**
     *internal method to create a new account.
@@ -64,5 +66,5 @@ public class AccountUtils {
     *@param ID guild IDs should be Integer.toString() and player IDs should be UUID.toString()
     *@param balance the balance to be set initially
     */
-    private static String addAccount(String ID, double balance) {return "";}
+    private static String addAccount(UUID ID, double balance) {return "";}
 }

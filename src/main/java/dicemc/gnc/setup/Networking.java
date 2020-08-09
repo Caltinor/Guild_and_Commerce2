@@ -23,11 +23,10 @@ public class Networking {
 				s -> true);
 		
 		INSTANCE.messageBuilder(PacketOpenGui_Land.class, nextID())
-			.encoder((packetOpenGui_Land, packetBuffer) -> {})
-			.decoder(buf -> new PacketOpenGui_Land())
+			.encoder(PacketOpenGui_Land::toBytes)
+			.decoder(PacketOpenGui_Land::new)
 			.consumer(PacketOpenGui_Land::handle)
-			.add();
-		
+			.add();		
 		INSTANCE.messageBuilder(PacketGuiRequest.class, nextID())
 			.encoder(PacketGuiRequest::toBytes)
 			.decoder(PacketGuiRequest::new)

@@ -15,7 +15,7 @@ import net.minecraftforge.common.util.Constants;
 
 public class ChunkData {
 	public ChunkPos pos;
-	public String owner = GnC.NIL.toString();
+	public UUID owner = GnC.NIL;
 	public UUID renter = GnC.NIL;
 	public double price = Config.DEFAULT_LAND_PRICE.get();
 	public double leasePrice = -1;
@@ -35,7 +35,7 @@ public class ChunkData {
 		pos = new ChunkPos(nbt.getLong("pos"));
 		leaseDuration = nbt.getLong("leaseduration");
 		rentEnd = nbt.getLong("rentend");
-		owner = nbt.getString("owner");
+		owner = nbt.getUniqueId("owner");
 		renter = nbt.getUniqueId("renter");
 		price = nbt.getDouble("price");
 		leasePrice = nbt.getDouble("leaseprice");
@@ -59,7 +59,7 @@ public class ChunkData {
 		nbt.putLong("pos", pos.asLong());
 		nbt.putLong("leaseduration", leaseDuration);
 		nbt.putLong("rentend", rentEnd);
-		nbt.putString("owner", owner);
+		nbt.putUniqueId("owner", owner);
 		nbt.putUniqueId("renter", renter);
 		nbt.putDouble("price", price);
 		nbt.putDouble("leaseprice", leasePrice);

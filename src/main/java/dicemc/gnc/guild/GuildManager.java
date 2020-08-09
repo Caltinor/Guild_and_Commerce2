@@ -4,6 +4,8 @@ import java.util.UUID;
 
 import javax.annotation.Nullable;
 
+import dicemc.gnc.guild.Guild.permKey;
+
 import java.util.Map;
 import java.util.HashMap;
 import java.util.List;
@@ -23,7 +25,8 @@ public class GuildManager {
     */
     public String createGuild(String name) {
     	UUID id = unrepeatedUUIDs();
-    	gmap.put(id, new Guild(name, unrepeatedUUIDs()));
+    	gmap.put(id, new Guild(name, id));
+    	for (permKey perms : permKey.values()) {addPermission(id, perms, 0);}
     	return "Guild Created";
     }
     
@@ -196,7 +199,7 @@ public class GuildManager {
     *@param guildID the guild's unique ID
     */
     public Map<Integer, String> getRanks(UUID guildID) {return gmap.get(guildID).permLevels;}
-    
+
     /**
     * used to add new permission records to a new guild.  should not be called elsewhere.
     *
@@ -206,7 +209,7 @@ public class GuildManager {
     *@param permTag the tag for the permission as used in other methods
     *@param value the rank value of the permission (Default = 1)
     */
-    protected String addPermission(UUID guildID, String permTag, int value) { return setPermission(guildID, permTag, value); }
+    protected String addPermission(UUID guildID, permKey permTag, int value) { return setPermission(guildID, permTag, value); }
     
     /**
     *changes the rank value of a specific permission
@@ -217,7 +220,7 @@ public class GuildManager {
     *@param permTag the tag for the permission to be changed
     *@param value the rank value of the permission. must be >= 0
     */
-    public String setPermission(UUID guildID, String permTag, int value) {
+    public String setPermission(UUID guildID, permKey permTag, int value) {
     	gmap.get(guildID).permissions.put(permTag, value);
     	return "Permission Set";
     }
@@ -228,7 +231,7 @@ public class GuildManager {
     *@param guildID the id of the guild.
     *@param permTag the tag for the permission queried
     */
-    public int getPermission(UUID guildID, String permTag) { return gmap.get(guildID).permissions.getOrDefault(permTag, -2); }
+    public int getPermission(UUID guildID, permKey permTag) { return gmap.get(guildID).permissions.getOrDefault(permTag, -2); }
     
     /**
     *gets all permissions and values for a specific guild
@@ -237,5 +240,5 @@ public class GuildManager {
     *
     *@param guildID the id of the guild being queried.
     */
-    public Map<String, Integer> getPermissions(UUID guildID) {return gmap.get(guildID).permissions;}
+    public Map<permKey, Integer> getPermissions(UUID guildID) {return gmap.get(guildID).permissions;}
 }

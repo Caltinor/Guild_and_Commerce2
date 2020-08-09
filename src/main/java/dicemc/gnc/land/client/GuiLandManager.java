@@ -1,51 +1,72 @@
 package dicemc.gnc.land.client;
 
+import java.awt.Color;
 import java.text.DecimalFormat;
+import java.util.Map;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
 
 import dicemc.gnc.GnC;
+import dicemc.gnc.guild.Guild;
+import dicemc.gnc.guild.Guild.permKey;
+import dicemc.gnc.land.ChunkData;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.client.gui.widget.button.Button;
 import net.minecraft.client.renderer.Tessellator;
+import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.nbt.ListNBT;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.ChunkPos;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.TextFormatting;
+import net.minecraft.world.chunk.Chunk;
 import net.minecraftforge.client.gui.ScrollPanel;
+import net.minecraftforge.common.util.Constants;
 
 public class GuiLandManager extends Screen{
 	public static final ResourceLocation MAP_BORDER = new ResourceLocation(GnC.MOD_ID+":guis/chunkgui.png");
 	private Screen parentScreen;
 	private DecimalFormat df = new DecimalFormat("###,###,###,##0.00");
-	private String header;
 	private boolean chunkView = true;
 	private boolean overlayView = false;
+	private ChunkPos selectedCK;
 	//Objects
 	private Button backButton, chunkButton, subletButton, overlayButton;
 	private Button tempClaimButton, guildClaimButton, abandonButton, extendButton, sellButton;
 	private Button updateSubletButton, publicToggleButton, minRankIncreaseButton, minRankDecreaseButton, disableSubletButton, 
 		breakToggleButton, interactToggleButton, clearWhitelistButton, memberAddButton, memberRemoveButton; 
 	private TextFieldWidget sellField, subletCostField, subletDurationField, playerAddField;
-	private PlayerListPanel playerList, whiteList;
+	private PlayerListPanel playerList;
+	private WhiteListPanel whiteList;
 	//Given Variables
-	private double balP;
+	private String response;
+	private double balP, balG;
+	private Map<ChunkPos, ChunkSummary> ckData;
+	private Guild myGuild;
+	private ChunkPos center;
 	
-	public static void open(double balP) {
+	public static void open(double balG, double balP, Guild guild, Map<ChunkPos, ChunkSummary> chunkData, ChunkPos center) {
 		Screen parent = Minecraft.getInstance().currentScreen;
-		Minecraft.getInstance().displayGuiScreen(new GuiLandManager(parent, balP));
+		Minecraft.getInstance().displayGuiScreen(new GuiLandManager(parent, balG, balP, guild, chunkData, center));
 	}
 	
-	protected GuiLandManager(Screen parentScreen, double balP) {
+	protected GuiLandManager(Screen parentScreen, double balG, double balP, Guild guild, Map<ChunkPos, ChunkSummary> chunkData, ChunkPos center) {
 		super(new StringTextComponent("Land Manager"));
-		this.parentScreen = parentScreen;		
+		this.parentScreen = parentScreen;
 		this.balP = balP;
+		this.balG = balG;
+		this.myGuild = guild;
+		this.ckData = chunkData;
+		this.center = center;
 	}
 	
 	@Override
 	protected void init() {
-		header = "Account: $"+df.format(balP);
+		response = "Account: $"+df.format(balP) +" [Guild $"+df.format(balG)+"]";
+		selectedCK = center;
 		int xq1 = this.width/4;
 		int xq2 = this.width/2;
 		int xq3 = (this.width/4)*3;
@@ -68,11 +89,11 @@ public class GuiLandManager extends Screen{
 		subletCostField = new TextFieldWidget(font, xq2+3, 41, ((xq2-6)/3), 20, new StringTextComponent(""));
 		subletDurationField = new TextFieldWidget(font, subletCostField.x + subletCostField.getWidth(), subletCostField.y, subletCostField.getWidth(), 20, new StringTextComponent(""));
 		updateSubletButton = new Button(subletDurationField.x + subletDurationField.getWidth()+ 3, subletCostField.y, subletCostField.getWidth()-5, 20, new StringTextComponent("Update Rent"), button -> actionUpdateSublet());
-		publicToggleButton = new Button(xq2+3, subletCostField.y + subletCostField.getHeight() + 3, 75, 20, new StringTextComponent("Public: No"), button -> actionPublicToggle());
-		whiteList = new PlayerListPanel(minecraft, updateSubletButton.x-(xq2+3), (playerList.y-13)-(publicToggleButton.y+publicToggleButton.getHeight()+13), (publicToggleButton.y+publicToggleButton.getHeight()+13), playerList.x);
+		publicToggleButton = new Button(xq2+3, subletCostField.y + subletCostField.getHeight() + 3, 60, 20, new StringTextComponent("Public: No"), button -> actionPublicToggle());
+		whiteList = new WhiteListPanel(minecraft, updateSubletButton.x-(xq2+3), (playerList.y-13)-(publicToggleButton.y+publicToggleButton.getHeight()+13), (publicToggleButton.y+publicToggleButton.getHeight()+13), playerList.x);
 		disableSubletButton = new Button(updateSubletButton.x, publicToggleButton.y, updateSubletButton.getWidth(), 20, new StringTextComponent("Disable Rent"), button -> actionDisableSublet());
 		minRankIncreaseButton = new Button(disableSubletButton.x - 18, disableSubletButton.y, 15, 20, new StringTextComponent("+"), button -> actionMinRankIncrease());
-		minRankDecreaseButton = new Button(minRankIncreaseButton.x-18, minRankIncreaseButton.y, 15, 20, new StringTextComponent("-"), button -> actionMinRankDecrease());
+		minRankDecreaseButton = new Button(minRankIncreaseButton.x-15, minRankIncreaseButton.y, 15, 20, new StringTextComponent("-"), button -> actionMinRankDecrease());
 		breakToggleButton = new Button(disableSubletButton.x, whiteList.y, updateSubletButton.getWidth(), 20, new StringTextComponent("Break"), button -> actionBreakToggle());
 		interactToggleButton = new Button(breakToggleButton.x, breakToggleButton.y + breakToggleButton.getHeight() + 3, updateSubletButton.getWidth(), 20, new StringTextComponent("Interact"), button -> actionInteractToggle());
 		clearWhitelistButton = new Button(interactToggleButton.x, whiteList.bottom-20, updateSubletButton.getWidth(), 20, new StringTextComponent("Clear List"), button -> actionClearWhitelist());
@@ -109,25 +130,55 @@ public class GuiLandManager extends Screen{
 		
 		//chunk toggle items
 		tempClaimButton.visible = chunkView;
+		tempClaimButton.active = ckData.get(selectedCK).data.owner.equals(GnC.NIL);
+		
+		boolean gon = guildOwnedNeighbor();
 		guildClaimButton.visible = chunkView;
+		guildClaimButton.active = 	(isPermitted(permKey.CORE_CLAIM) && gon)|| 
+									(isPermitted(permKey.OUTPOST_CLAIM) && gon && guildOwnedNeighborIsOutpost())||
+									(isPermitted(permKey.OUTPOST_CREATE) && !gon);
+		guildClaimButton.setMessage(new StringTextComponent(gon ? "Guild Claim" : "New Outpost"));
+		
 		abandonButton.visible = chunkView;
+		abandonButton.active = (!ckData.get(selectedCK).data.isForSale && isPermitted(permKey.CLAIM_ABANDON)
+				&& ckData.get(selectedCK).data.owner.equals(myGuild.guildID));
+		
 		extendButton.visible = chunkView;
+		extendButton.active = ckData.get(selectedCK).data.owner.equals(myGuild.guildID) 
+				|| !ckData.get(selectedCK).data.permittedPlayers.getOrDefault(minecraft.player.getUniqueID(), "N/A").equalsIgnoreCase("N/A");
+		
 		sellButton.visible = chunkView;
+		sellButton.active = ckData.get(selectedCK).data.owner.equals(myGuild.guildID) && isPermitted(permKey.CLAIM_SELL);
+		
 		sellField.visible = chunkView;
+		sellField.active = sellButton.active;
 		//sublet toggle items
 		updateSubletButton.visible = !chunkView;
+		updateSubletButton.active = ckData.get(selectedCK).data.owner.equals(myGuild.guildID) && isPermitted(permKey.SUBLET_MANAGE);		
 		publicToggleButton.visible = !chunkView;
+		publicToggleButton.active = ckData.get(selectedCK).data.owner.equals(myGuild.guildID) && isPermitted(permKey.SUBLET_MANAGE);
 		disableSubletButton.visible = !chunkView;
+		disableSubletButton.active = ckData.get(selectedCK).data.owner.equals(myGuild.guildID) && isPermitted(permKey.SUBLET_MANAGE);
 		minRankIncreaseButton.visible = !chunkView;
+		minRankIncreaseButton.active = ckData.get(selectedCK).data.owner.equals(myGuild.guildID) && isPermitted(permKey.SUBLET_MANAGE);
 		minRankDecreaseButton.visible = !chunkView;
+		minRankDecreaseButton.active = ckData.get(selectedCK).data.owner.equals(myGuild.guildID) && isPermitted(permKey.SUBLET_MANAGE);
 		breakToggleButton.visible = !chunkView;
+		breakToggleButton.active = ckData.get(selectedCK).data.owner.equals(myGuild.guildID) && isPermitted(permKey.SUBLET_MANAGE);
 		interactToggleButton.visible = !chunkView;
+		interactToggleButton.active = ckData.get(selectedCK).data.owner.equals(myGuild.guildID) && isPermitted(permKey.SUBLET_MANAGE);
 		clearWhitelistButton.visible = !chunkView;
+		clearWhitelistButton.active = ckData.get(selectedCK).data.owner.equals(myGuild.guildID) && isPermitted(permKey.SUBLET_MANAGE);
 		memberRemoveButton.visible = !chunkView;
+		memberRemoveButton.active = ckData.get(selectedCK).data.owner.equals(myGuild.guildID) && isPermitted(permKey.SUBLET_MANAGE);
 		memberAddButton.visible = !chunkView;
+		memberAddButton.active = ckData.get(selectedCK).data.owner.equals(myGuild.guildID) && isPermitted(permKey.SUBLET_MANAGE);
 		subletCostField.visible = !chunkView;
+		subletCostField.active = updateSubletButton.active;
 		subletDurationField.visible = !chunkView;
+		subletDurationField.active = updateSubletButton.active;
 		playerAddField.visible = !chunkView;
+		playerAddField.active = memberAddButton.active;
 	}
 	
 	@Override
@@ -139,33 +190,69 @@ public class GuiLandManager extends Screen{
 		return super.keyPressed(p_231046_1_, p_231046_2_, p_231046_3_);
 	}
 	
+	//render strings
+	
 	@Override
 	public void render(MatrixStack mStack, int mouseX, int mouseY, float partialTicks) {
 		this.renderBackground(mStack);
 		minecraft.getTextureManager().bindTexture(MAP_BORDER);
 		int d = (this.width/2) > (this.height-55) ? this.height-55 : this.width/2;
-		blit(mStack, ((this.width/2)-d)/2, 25, d, d, 0, 0, 256, 256, 256, 256);
+		int mapX = ((this.width/2)-d)/2;
+		int mapY = 25;
+		blit(mStack, mapX, mapY, d, d, 0, 0, 256, 256, 256, 256);
 		blit(mStack, this.width/2, 25, (this.width/2)-3, this.height-28, 0, 0, 256, 256, 256, 256);
-		this.drawString(mStack, this.font, header, 5, 5, 16777215);		
-		this.drawString(mStack, font, TextFormatting.BOLD+"Permitted Players:", playerList.x, playerList.y-10, 1677215);
+		renderMap(mStack, mapX, mapY, d-6);
+		renderOverlay(mStack);
+		this.drawString(mStack, this.font, response, 5, 5, 16777215);	
+		this.font.func_238422_b_(mStack, new StringTextComponent(TextFormatting.BLUE+"Permitted Players:"), playerList.x, playerList.y-10, 1677215);
 		sellField.render(mStack, mouseX, mouseY, partialTicks);
 		playerList.render(mStack, mouseX, mouseY, partialTicks);
 		subletCostField.render(mStack, mouseX, mouseY, partialTicks);
 		subletDurationField.render(mStack, mouseX, mouseY, partialTicks);
-		playerAddField.render(mStack, mouseX, mouseY, partialTicks);
-		super.render(mStack, mouseX, mouseY, partialTicks);
+		playerAddField.render(mStack, mouseX, mouseY, partialTicks);		
 		if (chunkView) {
-			this.drawString(mStack, font, TextFormatting.BOLD+""+TextFormatting.DARK_RED+"Outpost = No", abandonButton.x, abandonButton.y + abandonButton.getHeight() + 10, 16777215);
-			this.drawString(mStack, font, TextFormatting.BOLD+""+TextFormatting.DARK_PURPLE+"Whitelist Type: Default", abandonButton.x, abandonButton.y + abandonButton.getHeight() + 25, 16777215);
+			this.font.func_238422_b_(mStack, new StringTextComponent(TextFormatting.DARK_RED+"Outpost = No"), abandonButton.x, abandonButton.y + abandonButton.getHeight() + 10, 16777215);
+			this.font.func_238422_b_(mStack, new StringTextComponent(TextFormatting.DARK_PURPLE+"Whitelist Type: Default"), abandonButton.x, abandonButton.y + abandonButton.getHeight() + 25, 16777215);
 		}
 		if (!chunkView) {
-			this.drawString(mStack, font, "Min Rank:", publicToggleButton.x + publicToggleButton.getWidth() + 3, publicToggleButton.y, 16777215);
-			this.drawString(mStack, font, "Leader", publicToggleButton.x + publicToggleButton.getWidth() + 3, publicToggleButton.y+11, 16777215); //TODO replace text with rank variable	
-			this.drawString(mStack, font, TextFormatting.BOLD+"Whitelist: "+TextFormatting.RED+"Break"+TextFormatting.BLUE+" Interact", whiteList.x, whiteList.y-10, 16777215);
-			this.drawString(mStack, font, TextFormatting.DARK_GRAY+"Sublet Rate:", subletCostField.x, subletCostField.y-10, 16777215);
-			this.drawString(mStack, font, TextFormatting.BLACK+"Rent Duration (in Hours)", subletDurationField.x, subletDurationField.y-10, 16777215);
+			this.font.func_238422_b_(mStack, new StringTextComponent("Min Rank:"), publicToggleButton.x + publicToggleButton.getWidth() + 3, publicToggleButton.y, 16777215);
+			this.font.func_238422_b_(mStack, new StringTextComponent("Leader"), publicToggleButton.x + publicToggleButton.getWidth() + 3, publicToggleButton.y+11, 16777215); //TODO replace text with rank variable	
+			this.font.func_238422_b_(mStack, new StringTextComponent(TextFormatting.BLACK+"Whitelist: "+TextFormatting.RED+"Break"+TextFormatting.BLUE+" Interact"), whiteList.x, whiteList.y-10, 16777215);
+			this.font.func_238422_b_(mStack, new StringTextComponent(TextFormatting.BLACK+"Sublet Rate:"), subletCostField.x, subletCostField.y-10, 16777215);
+			this.font.func_238422_b_(mStack, new StringTextComponent(TextFormatting.BLACK+"Rent Duration (in Hours)"), subletDurationField.x, subletDurationField.y-10, 16777215);
 			whiteList.render(mStack, mouseX, mouseY, partialTicks);
 		}
+		super.render(mStack, mouseX, mouseY, partialTicks);
+	}
+	
+	private void renderMap(MatrixStack mStack, int left, int top, int d) {
+		int ivl = (d-6)/176;
+		int xp = -1;
+		int yp = -1;
+		for (int xck = (center.x-5); xck <= (center.x+5); xck++) {
+			xp++;
+			for (int zck = (center.z-5); zck <= (center.z+5); zck++) {
+				yp++;
+				ChunkPos pos = new ChunkPos(xck, zck);
+				ChunkSummary cs = ckData.get(pos);
+				for (int x = pos.getXStart(); x <= pos.getXEnd(); x++) {
+					for (int z = pos.getZStart(); z <= pos.getZEnd(); z++) {
+						int x1 = left+(16*xp)+(pos.getXStart()-x);
+						int y1 = top+(16*yp)+(pos.getZStart()-z);
+						fill(mStack,x1, y1, ivl, ivl, cs.mapGrid.getOrDefault(new BlockPos(x, 0, z), Color.CYAN).hashCode());
+					}
+				}
+			}
+		}
+		//TODO draw the grid
+	}
+	
+	private void renderOverlay(MatrixStack mStack) {
+		/* -draw selectionbox
+		 * if (overlayToggle) {
+		 * 		drawoverlay colors
+		 * }
+		 */
 	}
 	
 	private void actionBack() {minecraft.displayGuiScreen(parentScreen);}
@@ -187,6 +274,29 @@ public class GuiLandManager extends Screen{
 	private void actionClearWhitelist() {}
 	private void actionMemberAdd() {}
 	private void actionMemberRemove() {} 
+	
+	private boolean guildOwnedNeighbor() {
+		if (ckData.get(new ChunkPos(selectedCK.x-1, selectedCK.z)).data.owner.equals(myGuild.guildID)) return true;
+		if (ckData.get(new ChunkPos(selectedCK.x+1, selectedCK.z)).data.owner.equals(myGuild.guildID)) return true;
+		if (ckData.get(new ChunkPos(selectedCK.x, selectedCK.z-1)).data.owner.equals(myGuild.guildID)) return true;
+		if (ckData.get(new ChunkPos(selectedCK.x, selectedCK.z+1)).data.owner.equals(myGuild.guildID)) return true;
+		return false;
+	}
+	
+	private boolean guildOwnedNeighborIsOutpost() {
+		if (ckData.get(new ChunkPos(selectedCK.x-1, selectedCK.z)).data.isOutpost) return true;
+		if (ckData.get(new ChunkPos(selectedCK.x+1, selectedCK.z)).data.isOutpost) return true;
+		if (ckData.get(new ChunkPos(selectedCK.x, selectedCK.z-1)).data.isOutpost) return true;
+		if (ckData.get(new ChunkPos(selectedCK.x, selectedCK.z+1)).data.isOutpost) return true;
+		return false;
+	}
+	
+	private boolean isPermitted(permKey key) {
+		int rank = myGuild.members.getOrDefault(minecraft.player.getUniqueID(), -3);
+		if (rank < 0) return false;
+		if (rank <= myGuild.permissions.get(key)) return true;
+		return false;
+	}
 	
 	class PlayerListPanel extends ScrollPanel {
 		public int x, y, right, bottom;
@@ -215,5 +325,70 @@ public class GuiLandManager extends Screen{
 			// TODO Auto-generated method stub			
 		}
 		
+	}
+	
+	class WhiteListPanel extends ScrollPanel {
+		public int x, y, right, bottom;
+
+		public WhiteListPanel(Minecraft client, int width, int height, int top, int left) {
+			super(client, width, height, top, left);
+			x = left;
+			y = top;
+			right = x + width;
+			bottom = y + height;
+			// TODO Add to params populating data
+		}
+		
+		public void refresh() {
+			//TODO add parameter to update new data
+		}
+
+		@Override
+		protected int getContentHeight() {
+			// TODO Auto-generated method stub
+			return 0;
+		}
+
+		@Override
+		protected void drawPanel(MatrixStack mStack, int entryRight, int relativeY, Tessellator tess, int mouseX, int mouseY) {
+			// TODO Auto-generated method stub			
+		}
+		
+	}
+
+	public static class ChunkSummary {
+		public ChunkData data;
+		public String guildName;
+		public Map<BlockPos, Color> mapGrid;
+		
+		public ChunkSummary(ChunkData data, String guildName, Map<BlockPos, Color> mapGrid) {
+			this.data = data; 
+			this.guildName = guildName;
+			this.mapGrid = mapGrid;
+		}
+		
+		public ChunkSummary(CompoundNBT nbt) {
+			data = new ChunkData(nbt.getCompound("data"));
+			guildName = nbt.getString("name");
+			ListNBT list = nbt.getList("mapgrid", Constants.NBT.TAG_COMPOUND);
+			for(int i = 0; i < list.size(); i++) {
+				mapGrid.put(BlockPos.fromLong(nbt.getLong("pos")), Color.decode(nbt.getString("color")));
+			}
+		}
+		
+		public CompoundNBT toNBT() {
+			CompoundNBT nbt = new CompoundNBT();
+			nbt.put("data", data.toNBT());
+			nbt.putString("name", guildName);
+			ListNBT list = new ListNBT();
+			if (mapGrid.size() > 0) { for (Map.Entry<BlockPos, Color> entry : mapGrid.entrySet()) {
+				CompoundNBT snbt = new CompoundNBT();
+				snbt.putLong("pos", entry.getKey().toLong());
+				snbt.putString("color", entry.getValue().toString());
+				list.add(snbt);
+			}}
+			nbt.put("mapgrid", list);
+			return nbt;
+		}
 	}
 }

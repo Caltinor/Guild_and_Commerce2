@@ -2,6 +2,7 @@ package dicemc.gnc.setup;
 
 import dicemc.gnc.GnC;
 import dicemc.gnc.datastorage.database.DatabaseManager;
+import dicemc.gnc.guild.GuildManager;
 import dicemc.gnc.land.ChunkManager;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -13,7 +14,7 @@ public class CommonSetup {
 	public static void init(final FMLCommonSetupEvent event) {
 		Networking.registerMessages();
 		GnC.ckMgr = new ChunkManager();	
-		//TODO guild Manager
+		GnC.gMgr = new GuildManager();
 	}
 	
 	@SubscribeEvent

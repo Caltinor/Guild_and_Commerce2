@@ -1,8 +1,12 @@
 package dicemc.gnc.land.client;
 
 import java.awt.Color;
+import java.io.IOException;
 import java.text.DecimalFormat;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Random;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
 
@@ -10,6 +14,7 @@ import dicemc.gnc.GnC;
 import dicemc.gnc.guild.Guild;
 import dicemc.gnc.guild.Guild.permKey;
 import dicemc.gnc.land.ChunkData;
+import net.minecraft.block.material.MaterialColor;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.TextFieldWidget;
@@ -22,9 +27,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.TextFormatting;
-import net.minecraft.world.chunk.Chunk;
 import net.minecraftforge.client.gui.ScrollPanel;
-import net.minecraftforge.common.util.Constants;
 
 public class GuiLandManager extends Screen{
 	public static final ResourceLocation MAP_BORDER = new ResourceLocation(GnC.MOD_ID+":guis/chunkgui.png");
@@ -33,6 +36,8 @@ public class GuiLandManager extends Screen{
 	private boolean chunkView = true;
 	private boolean overlayView = false;
 	private ChunkPos selectedCK;
+	private Map<ChunkPos, Color> overlayColors;
+	private int d, mapX, mapY;
 	//Objects
 	private Button backButton, chunkButton, subletButton, overlayButton;
 	private Button tempClaimButton, guildClaimButton, abandonButton, extendButton, sellButton;
@@ -44,27 +49,35 @@ public class GuiLandManager extends Screen{
 	//Given Variables
 	private String response;
 	private double balP, balG;
-	private Map<ChunkPos, ChunkSummary> ckData;
-	private Guild myGuild;
+	private Map<ChunkPos, ChunkSummary> ckData = new HashMap<ChunkPos, ChunkSummary>();
+	private Guild myGuild = new Guild("N/A", GnC.NIL);
 	private ChunkPos center;
+	private int[][] mapColors = new int[176][176];
 	
-	public static void open(double balG, double balP, Guild guild, Map<ChunkPos, ChunkSummary> chunkData, ChunkPos center) {
+	public static void open(double balG, double balP, Guild guild, int[][] mapColors, ChunkPos center, List<ChunkSummary> summary) {
 		Screen parent = Minecraft.getInstance().currentScreen;
-		Minecraft.getInstance().displayGuiScreen(new GuiLandManager(parent, balG, balP, guild, chunkData, center));
+		Minecraft.getInstance().displayGuiScreen(new GuiLandManager(parent, balG, balP, guild, mapColors, center, summary));
 	}
 	
-	protected GuiLandManager(Screen parentScreen, double balG, double balP, Guild guild, Map<ChunkPos, ChunkSummary> chunkData, ChunkPos center) {
+	protected GuiLandManager(Screen parentScreen, double balG, double balP, Guild guild, int[][] mapColors, ChunkPos center, List<ChunkSummary> summary) {
 		super(new StringTextComponent("Land Manager"));
 		this.parentScreen = parentScreen;
 		this.balP = balP;
 		this.balG = balG;
-		this.myGuild = guild;
-		this.ckData = chunkData;
+		this.myGuild = guild != null ? guild : myGuild;
+		for (int i = 0; i < summary.size(); i++) {this.ckData.put(summary.get(i).data.pos, summary.get(i));}
 		this.center = center;
+		this.selectedCK = center;
+		this.mapColors = mapColors;
 	}
 	
 	@Override
 	protected void init() {
+		System.out.println(ckData.toString());
+		d = (this.width/2) > (this.height-55) ? this.height-55 : this.width/2;
+		mapX = ((this.width/2)-d)/2;
+		mapY = 25;
+		overlayColors = generateMapColors();
 		response = "Account: $"+df.format(balP) +" [Guild $"+df.format(balG)+"]";
 		selectedCK = center;
 		int xq1 = this.width/4;
@@ -190,19 +203,26 @@ public class GuiLandManager extends Screen{
 		return super.keyPressed(p_231046_1_, p_231046_2_, p_231046_3_);
 	}
 	
-	//render strings
+	public boolean mouseClicked(double mouseX, double mouseY, int mouseButton) {
+		super.mouseClicked(mouseX, mouseY, mouseButton);
+		if (mouseX > mapX+4 && mouseX <= mapX+4+d && mouseY > mapY+4 && mouseY < mapY+4+d) {
+			int ckX = (center.x-5)+(((int)mouseX - mapX-4)/16);
+			int ckZ = (center.z-5)+(((int)mouseY - mapY-4)/16);
+			selectedCK = new ChunkPos(ckX, ckZ);
+			updateVisibility();
+			return true;
+		}
+		return false;
+	}
 	
 	@Override
 	public void render(MatrixStack mStack, int mouseX, int mouseY, float partialTicks) {
 		this.renderBackground(mStack);
 		minecraft.getTextureManager().bindTexture(MAP_BORDER);
-		int d = (this.width/2) > (this.height-55) ? this.height-55 : this.width/2;
-		int mapX = ((this.width/2)-d)/2;
-		int mapY = 25;
 		blit(mStack, mapX, mapY, d, d, 0, 0, 256, 256, 256, 256);
 		blit(mStack, this.width/2, 25, (this.width/2)-3, this.height-28, 0, 0, 256, 256, 256, 256);
-		renderMap(mStack, mapX, mapY, d-6);
-		renderOverlay(mStack);
+		renderMap(mStack, mapX+4, mapY+4, d-6);
+		renderOverlay(mStack, mapX+4, mapY+4, d-6);
 		this.drawString(mStack, this.font, response, 5, 5, 16777215);	
 		this.font.func_238422_b_(mStack, new StringTextComponent(TextFormatting.BLUE+"Permitted Players:"), playerList.x, playerList.y-10, 1677215);
 		sellField.render(mStack, mouseX, mouseY, partialTicks);
@@ -226,33 +246,41 @@ public class GuiLandManager extends Screen{
 	}
 	
 	private void renderMap(MatrixStack mStack, int left, int top, int d) {
-		int ivl = (d-6)/176;
-		int xp = -1;
-		int yp = -1;
-		for (int xck = (center.x-5); xck <= (center.x+5); xck++) {
-			xp++;
-			for (int zck = (center.z-5); zck <= (center.z+5); zck++) {
-				yp++;
-				ChunkPos pos = new ChunkPos(xck, zck);
-				ChunkSummary cs = ckData.get(pos);
-				for (int x = pos.getXStart(); x <= pos.getXEnd(); x++) {
-					for (int z = pos.getZStart(); z <= pos.getZEnd(); z++) {
-						int x1 = left+(16*xp)+(pos.getXStart()-x);
-						int y1 = top+(16*yp)+(pos.getZStart()-z);
-						fill(mStack,x1, y1, ivl, ivl, cs.mapGrid.getOrDefault(new BlockPos(x, 0, z), Color.CYAN).hashCode());
-					}
+		int ivl = (d)/176;
+		for (int x = 0; x < 176; x++) {
+			for (int z = 0; z < 176; z++) {
+				Color color = new Color(mapColors[x][z]);
+				int l = left+(x*ivl);
+				int t = top+(z*ivl);
+				fill(mStack, l+ivl, t, l, t+ivl, color.getRGB());
+			}
+		}
+		for (int v = 1; v < 11; v++) {
+			fill(mStack, left+(ivl*v*16), top, left+(ivl*v*16)+1, top+d-3, Color.BLACK.getRGB());
+        }
+        for (int h = 1; h < 11; h++) {
+        	fill(mStack, left, top+(ivl*h*16), left+d-3, top+(ivl*h*16)+1, Color.BLACK.getRGB());
+        }
+	}
+	
+	private void renderOverlay(MatrixStack mStack, int left, int top, int d) {
+		int ivl = (d)/11;
+		int x = left + (ivl*(5+(selectedCK.x-center.x)));
+		int y = top + (ivl*(5+(selectedCK.z-center.z)));
+		//draw selection box
+		fill(mStack, x, y, x+ivl, y+ivl, 0x800000FF);
+		//draw overlay if toggled on
+		if (overlayView) {
+			for (int x1 = 0; x1 < 11; x1++) {
+				for (int z1 = 0; z1 < 11; z1++) {
+					ChunkPos pos = new ChunkPos(center.x+(-5+x1), center.z+(-5+z1));
+					int x2 = left+(ivl*x1*16);
+					int y2 = top+ (ivl*z1*16);
+					if (!ckData.get(pos).data.owner.equals(GnC.NIL)) fill(mStack, x2, y2, x2+ivl, y2+ivl, overlayColors.getOrDefault(pos, new Color(0x00000000)).getRGB());
 				}
 			}
 		}
-		//TODO draw the grid
-	}
-	
-	private void renderOverlay(MatrixStack mStack) {
-		/* -draw selectionbox
-		 * if (overlayToggle) {
-		 * 		drawoverlay colors
-		 * }
-		 */
+
 	}
 	
 	private void actionBack() {minecraft.displayGuiScreen(parentScreen);}
@@ -296,6 +324,18 @@ public class GuiLandManager extends Screen{
 		if (rank < 0) return false;
 		if (rank <= myGuild.permissions.get(key)) return true;
 		return false;
+	}
+	
+	private Map<ChunkPos, Color> generateMapColors() {
+		Map<ChunkPos, Color> map = new HashMap<ChunkPos, Color>();
+		for (Map.Entry<ChunkPos, ChunkSummary> entry : ckData.entrySet()) {
+			if (map.get(entry.getKey()) == null) {
+				Random rnd = new Random();
+				Color color = new Color(rnd.nextInt(255), rnd.nextInt(255), rnd.nextInt(255), 180);
+				map.put(entry.getKey(), color);
+			}
+		}
+		return map;
 	}
 	
 	class PlayerListPanel extends ScrollPanel {
@@ -359,35 +399,21 @@ public class GuiLandManager extends Screen{
 	public static class ChunkSummary {
 		public ChunkData data;
 		public String guildName;
-		public Map<BlockPos, Color> mapGrid;
 		
-		public ChunkSummary(ChunkData data, String guildName, Map<BlockPos, Color> mapGrid) {
+		public ChunkSummary(ChunkData data, String guildName) {
 			this.data = data; 
 			this.guildName = guildName;
-			this.mapGrid = mapGrid;
 		}
 		
 		public ChunkSummary(CompoundNBT nbt) {
 			data = new ChunkData(nbt.getCompound("data"));
 			guildName = nbt.getString("name");
-			ListNBT list = nbt.getList("mapgrid", Constants.NBT.TAG_COMPOUND);
-			for(int i = 0; i < list.size(); i++) {
-				mapGrid.put(BlockPos.fromLong(nbt.getLong("pos")), Color.decode(nbt.getString("color")));
-			}
 		}
 		
 		public CompoundNBT toNBT() {
 			CompoundNBT nbt = new CompoundNBT();
 			nbt.put("data", data.toNBT());
 			nbt.putString("name", guildName);
-			ListNBT list = new ListNBT();
-			if (mapGrid.size() > 0) { for (Map.Entry<BlockPos, Color> entry : mapGrid.entrySet()) {
-				CompoundNBT snbt = new CompoundNBT();
-				snbt.putLong("pos", entry.getKey().toLong());
-				snbt.putString("color", entry.getValue().toString());
-				list.add(snbt);
-			}}
-			nbt.put("mapgrid", list);
 			return nbt;
 		}
 	}

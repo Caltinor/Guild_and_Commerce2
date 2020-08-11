@@ -1,8 +1,7 @@
 package dicemc.gnc.common;
 
-import java.awt.Color;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 import java.util.function.Supplier;
 
@@ -39,34 +38,32 @@ public class PacketGuiRequest {
 				}
 				ServerWorld server = ctx.get().getSender().getServerWorld();
 				ChunkPos center = new ChunkPos(ctx.get().getSender().chunkCoordX, ctx.get().getSender().chunkCoordZ);
-				Map<ChunkPos, ChunkSummary> chunkData = new HashMap<ChunkPos, ChunkSummary>();
-				for (int xck = (center.x-6); xck <= (center.x+6); xck++) {
-					for (int zck = (center.z-6); zck <= (center.z+6); zck++) {
-						ChunkPos pos = new ChunkPos(xck, zck);
-						Map<BlockPos, Color> mapGrid = new HashMap<BlockPos, Color>();
-						for (int x = pos.getXStart(); x <= pos.getXEnd(); x++) {
-							for (int z = pos.getZStart(); z <= pos.getZEnd(); z++) {
-								Color color = new Color(16777215);
-								BlockPos bp = new BlockPos(x, 255, z);
-								for (int i = 255; i >= 0; i--) {
-									bp = new BlockPos(x, i, z);
-									if (!server.getBlockState(bp).isAir()) {break;}
-								}
-								color = new Color(server.getBlockState(bp).getMaterialColor(server.getWorld(), bp).colorValue);
-								mapGrid.put(new BlockPos(x, 0, z), color);
+				//collect center and adjacent chunk summaries
+				List<ChunkSummary> chunkData = new ArrayList<ChunkSummary>();
+				for (int x = center.x-6; x <= center.x+6; x++) {
+					for (int z = center.z-6; z <= center.z+6; z++) {
+						ChunkPos pos = new ChunkPos(x, z);
+						chunkData.add(new ChunkSummary(GnC.ckMgr.getChunk(pos), ownerName(pos, server)));
+					}
+				}
+				//Start mapColors gathering
+				int baseX = center.getXStart()-(16*5);
+				int baseZ = center.getZStart()-(16*5);
+				int[][] mapColors = new int[176][176];
+				for (int x = baseX; x < baseX+176; x++) {
+					for (int z = baseZ; z < baseZ+176; z++) {
+						for (int y = 255; y >= 0; y--) {
+							if (!server.getBlockState(new BlockPos(x, y, z)).isAir()) {
+								mapColors[x-baseX][z-baseZ] = server.getBlockState(new BlockPos(x, y, z)).getMaterialColor(server.getWorld(), new BlockPos(x, y, z)).colorValue;
+								break;
 							}
 						}
-						String gName = "Unowned";
-						if (GnC.ckMgr.getChunk(pos).owner.equals(GnC.NIL)) {}
-						else if (GnC.gMgr.getGuildByID(GnC.ckMgr.getChunk(pos).owner) != null) {gName = GnC.gMgr.getGuildByID(GnC.ckMgr.getChunk(pos).owner).name;}
-						else if (server.getPlayerByUuid(GnC.ckMgr.getChunk(pos).owner) != null) {gName = server.getPlayerByUuid(GnC.ckMgr.getChunk(pos).owner).getDisplayName().toString();}
-						ChunkSummary sum = new ChunkSummary(GnC.ckMgr.getChunk(pos), gName, mapGrid);
-						chunkData.put(pos, sum);
-					}					
+					}
 				}
+				//end mapColors gathering
 				double balG = gid.equals(GnC.NIL) ? 0.0 : AccountUtils.getBalance(gid);
 				double balP = AccountUtils.getBalance(ctx.get().getSender().getUniqueID());
-				Networking.sendToClient(new PacketOpenGui_Land(balG, balP, guild, chunkData, center), ctx.get().getSender()); 
+				Networking.sendToClient(new PacketOpenGui_Land(balG, balP, guild, mapColors, center, chunkData), ctx.get().getSender()); 
 				break;
 			}
 			case 1: {break;}
@@ -76,5 +73,12 @@ public class PacketGuiRequest {
 			
 		});
 		return true;
+	}
+	
+	private String ownerName(ChunkPos pos, ServerWorld server) {
+		if (GnC.ckMgr.getChunk(pos).owner.equals(GnC.NIL)) {return "Unowned";}
+		if (GnC.gMgr.getGuildByID(GnC.ckMgr.getChunk(pos).owner) != null) {return GnC.gMgr.getGuildByID(GnC.ckMgr.getChunk(pos).owner).name;}
+		if (server.getPlayerByUuid(GnC.ckMgr.getChunk(pos).owner) != null) {return server.getPlayerByUuid(GnC.ckMgr.getChunk(pos).owner).getDisplayName().toString();}
+		return "Logical Error";
 	}
 }

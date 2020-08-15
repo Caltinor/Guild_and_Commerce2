@@ -1,33 +1,41 @@
 package dicemc.gnc.land.client;
 
 import java.awt.Color;
-import java.io.IOException;
 import java.text.DecimalFormat;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.UUID;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
+import com.mojang.blaze3d.systems.RenderSystem;
 
 import dicemc.gnc.GnC;
 import dicemc.gnc.guild.Guild;
 import dicemc.gnc.guild.Guild.permKey;
 import dicemc.gnc.land.ChunkData;
-import net.minecraft.block.material.MaterialColor;
+import dicemc.gnc.land.WhitelistItem;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.client.gui.widget.button.Button;
+import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.client.renderer.Tessellator;
+import net.minecraft.client.renderer.WorldVertexBufferUploader;
+import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.nbt.ListNBT;
 import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
+import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.ITextProperties;
 import net.minecraft.util.text.StringTextComponent;
+import net.minecraft.util.text.Style;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraftforge.client.gui.ScrollPanel;
+import net.minecraftforge.common.ForgeHooks;
 
 public class GuiLandManager extends Screen{
 	public static final ResourceLocation MAP_BORDER = new ResourceLocation(GnC.MOD_ID+":guis/chunkgui.png");
@@ -73,7 +81,6 @@ public class GuiLandManager extends Screen{
 	
 	@Override
 	protected void init() {
-		System.out.println(ckData.toString());
 		d = (this.width/2) > (this.height-55) ? this.height-55 : this.width/2;
 		mapX = ((this.width/2)-d)/2;
 		mapY = 25;
@@ -91,13 +98,13 @@ public class GuiLandManager extends Screen{
 		subletButton = new Button(xq3, 3, xq1, 20, new StringTextComponent("Sublet View"), button -> actionSubletToggle());
 		overlayButton = new Button(5, this.height-30, xq1, 20, new StringTextComponent("Overlay: Off"), button -> actionOverlayToggle());
 		playerList = new PlayerListPanel(minecraft, xq1, yq1-9, yq3, xq2+3);
-		//Claim Toggle Objects
+		//Claim Toggle Objects 
 		tempClaimButton = new Button(xq2+3, 28, xq1-6, 20, new StringTextComponent("Temp Claim"), button -> actionTempClaim());
 		guildClaimButton = new Button(xq2+3, tempClaimButton.y + tempClaimButton.getHeight()+ 10, xq1-6, 20, new StringTextComponent("Guild Claim"), button -> actionGuildClaim());
 		abandonButton = new Button(xq2+3, guildClaimButton.y + guildClaimButton.getHeight() + 3, xq1-6, 20, new StringTextComponent("Abandon Claim"), button -> actionAbandon());
 		extendButton = new Button(xq3, tempClaimButton.y, xq1-6, 20, new StringTextComponent("Extend Time"), button -> actionExtend());
 		sellButton = new Button(xq3, guildClaimButton.y, xq1-6, 20, new StringTextComponent("Sell Claim"), button -> actionSell());
-		sellField = new TextFieldWidget(font, xq3, abandonButton.y, xq1-6, 20, new StringTextComponent("")); //TODO replace text with land current value
+		sellField = new TextFieldWidget(font, xq3, abandonButton.y, xq1-6, 20, new StringTextComponent(""));
 		//Sublet Toggle Objects
 		subletCostField = new TextFieldWidget(font, xq2+3, 41, ((xq2-6)/3), 20, new StringTextComponent(""));
 		subletDurationField = new TextFieldWidget(font, subletCostField.x + subletCostField.getWidth(), subletCostField.y, subletCostField.getWidth(), 20, new StringTextComponent(""));
@@ -109,8 +116,8 @@ public class GuiLandManager extends Screen{
 		minRankDecreaseButton = new Button(minRankIncreaseButton.x-15, minRankIncreaseButton.y, 15, 20, new StringTextComponent("-"), button -> actionMinRankDecrease());
 		breakToggleButton = new Button(disableSubletButton.x, whiteList.y, updateSubletButton.getWidth(), 20, new StringTextComponent("Break"), button -> actionBreakToggle());
 		interactToggleButton = new Button(breakToggleButton.x, breakToggleButton.y + breakToggleButton.getHeight() + 3, updateSubletButton.getWidth(), 20, new StringTextComponent("Interact"), button -> actionInteractToggle());
-		clearWhitelistButton = new Button(interactToggleButton.x, whiteList.bottom-20, updateSubletButton.getWidth(), 20, new StringTextComponent("Clear List"), button -> actionClearWhitelist());
-		playerAddField = new TextFieldWidget(font, playerList.right+3, playerList.y, this.width-playerList.right-12, 20, new StringTextComponent(""));
+		clearWhitelistButton = new Button(interactToggleButton.x, whiteList.y+whiteList.height-20, updateSubletButton.getWidth(), 20, new StringTextComponent("Clear List"), button -> actionClearWhitelist());
+		playerAddField = new TextFieldWidget(font, playerList.x+playerList.width+3, playerList.y, this.width-playerList.x-playerList.width-12, 20, new StringTextComponent(""));
 		memberRemoveButton = new Button(playerAddField.x, playerAddField.y+playerAddField.getHeight()+3, playerAddField.getWidth()/2, 20, new StringTextComponent("Remove"), button -> actionMemberRemove());
 		memberAddButton = new Button(memberRemoveButton.x+memberRemoveButton.getWidth(), memberRemoveButton.y, memberRemoveButton.getWidth(), 20, new StringTextComponent("Add"), button -> actionMemberAdd());
 		//final touches
@@ -164,7 +171,8 @@ public class GuiLandManager extends Screen{
 		sellButton.active = ckData.get(selectedCK).data.owner.equals(myGuild.guildID) && isPermitted(permKey.CLAIM_SELL);
 		
 		sellField.visible = chunkView;
-		sellField.active = sellButton.active;
+		sellField.setEnabled(sellButton.active);
+		sellField.setText(String.valueOf(ckData.get(selectedCK).data.price));
 		//sublet toggle items
 		updateSubletButton.visible = !chunkView;
 		updateSubletButton.active = ckData.get(selectedCK).data.owner.equals(myGuild.guildID) && isPermitted(permKey.SUBLET_MANAGE);		
@@ -187,11 +195,17 @@ public class GuiLandManager extends Screen{
 		memberAddButton.visible = !chunkView;
 		memberAddButton.active = ckData.get(selectedCK).data.owner.equals(myGuild.guildID) && isPermitted(permKey.SUBLET_MANAGE);
 		subletCostField.visible = !chunkView;
-		subletCostField.active = updateSubletButton.active;
+		subletCostField.setEnabled(updateSubletButton.active);
+		subletCostField.setText(String.valueOf(ckData.get(selectedCK).data.leasePrice));
 		subletDurationField.visible = !chunkView;
-		subletDurationField.active = updateSubletButton.active;
+		subletDurationField.setEnabled(updateSubletButton.active);
+		subletDurationField.setText(String.valueOf(ckData.get(selectedCK).data.leaseDuration));
 		playerAddField.visible = !chunkView;
-		playerAddField.active = memberAddButton.active;
+		playerAddField.setEnabled(memberAddButton.active);
+		whiteList.clearInfo();
+		whiteList.setInfo(ckData.get(selectedCK).data.whitelist);
+		playerList.clearInfo();
+		playerList.setInfo(ckData.get(selectedCK).data.permittedPlayers, ckData.get(selectedCK).data.renter);
 	}
 	
 	@Override
@@ -203,15 +217,40 @@ public class GuiLandManager extends Screen{
 		return super.keyPressed(p_231046_1_, p_231046_2_, p_231046_3_);
 	}
 	
+	public boolean charTyped(char ch, int a) {
+		super.charTyped(ch, a);
+		if (sellField.isFocused()) sellField.charTyped(ch, a);
+		if (subletCostField.isFocused()) subletCostField.charTyped(ch, a);
+		if (subletDurationField.isFocused()) subletDurationField.charTyped(ch, a);
+		if (playerAddField.isFocused()) playerAddField.charTyped(ch, a);
+		return true;
+	}
+	
+	public boolean mouseScrolled(double mouseX, double mouseY, double amountScrolled) {
+		super.mouseScrolled(mouseX, mouseY, amountScrolled);
+		if (mouseX > playerList.x && mouseX < playerList.x+playerList.width && mouseY > playerList.y && mouseY < playerList.y+playerList.height)
+			playerList.mouseScrolled(mouseX, mouseY, amountScrolled);
+		if (mouseX > whiteList.x && mouseX < whiteList.x+whiteList.width && mouseY > whiteList.y && mouseY < whiteList.y+whiteList.height)
+			whiteList.mouseScrolled(mouseX, mouseY, amountScrolled);
+		return true;
+	}
+	
+	
 	public boolean mouseClicked(double mouseX, double mouseY, int mouseButton) {
 		super.mouseClicked(mouseX, mouseY, mouseButton);
-		if (mouseX > mapX+4 && mouseX <= mapX+4+d && mouseY > mapY+4 && mouseY < mapY+4+d) {
-			int ckX = (center.x-5)+(((int)mouseX - mapX-4)/16);
-			int ckZ = (center.z-5)+(((int)mouseY - mapY-4)/16);
+		if (mouseX > (double)mapX+4d && mouseX <= (double)mapX+(double)d-4d && mouseY > (double)mapY+4d && mouseY < (double)mapY+(double)d-4d) {
+			int ckX = (center.x-5)+(int)((mouseX - (double)mapX-4d)/16);
+			int ckZ = (center.z-5)+(int)((mouseY - (double)mapY-4d)/16);
 			selectedCK = new ChunkPos(ckX, ckZ);
 			updateVisibility();
 			return true;
 		}
+		sellField.mouseClicked(mouseX, mouseY, mouseButton);
+		subletCostField.mouseClicked(mouseX, mouseY, mouseButton);
+		subletDurationField.mouseClicked(mouseX, mouseY, mouseButton);
+		playerAddField.mouseClicked(mouseX, mouseY, mouseButton);
+		playerList.mouseClicked(mouseX, mouseY, mouseButton);
+		whiteList.mouseClicked(mouseX, mouseY, mouseButton);
 		return false;
 	}
 	
@@ -221,22 +260,23 @@ public class GuiLandManager extends Screen{
 		minecraft.getTextureManager().bindTexture(MAP_BORDER);
 		blit(mStack, mapX, mapY, d, d, 0, 0, 256, 256, 256, 256);
 		blit(mStack, this.width/2, 25, (this.width/2)-3, this.height-28, 0, 0, 256, 256, 256, 256);
-		renderMap(mStack, mapX+4, mapY+4, d-6);
-		renderOverlay(mStack, mapX+4, mapY+4, d-6);
+		renderMap(mapX+4, mapY+4, d-8);
+		renderOverlay(mapX+4, mapY+4, d-8);
 		this.drawString(mStack, this.font, response, 5, 5, 16777215);	
-		this.font.func_238422_b_(mStack, new StringTextComponent(TextFormatting.BLUE+"Permitted Players:"), playerList.x, playerList.y-10, 1677215);
+		this.font.func_238422_b_(mStack, new StringTextComponent(TextFormatting.BLACK+"Permitted Players:"), playerList.x, playerList.y-10, 1677215);
 		sellField.render(mStack, mouseX, mouseY, partialTicks);
 		playerList.render(mStack, mouseX, mouseY, partialTicks);
 		subletCostField.render(mStack, mouseX, mouseY, partialTicks);
 		subletDurationField.render(mStack, mouseX, mouseY, partialTicks);
 		playerAddField.render(mStack, mouseX, mouseY, partialTicks);		
 		if (chunkView) {
-			this.font.func_238422_b_(mStack, new StringTextComponent(TextFormatting.DARK_RED+"Outpost = No"), abandonButton.x, abandonButton.y + abandonButton.getHeight() + 10, 16777215);
-			this.font.func_238422_b_(mStack, new StringTextComponent(TextFormatting.DARK_PURPLE+"Whitelist Type: Default"), abandonButton.x, abandonButton.y + abandonButton.getHeight() + 25, 16777215);
+			this.font.func_238422_b_(mStack, new StringTextComponent(TextFormatting.BLACK+"Owner: "+ckData.get(selectedCK).guildName), abandonButton.x, abandonButton.y + abandonButton.getHeight() + 10, 16777215);
+			this.font.func_238422_b_(mStack, new StringTextComponent(TextFormatting.BLACK+"Outpost: "+(ckData.get(selectedCK).data.isOutpost ? "Yes" : "No")), abandonButton.x, abandonButton.y + abandonButton.getHeight() + 25, 16777215);
+			this.font.func_238422_b_(mStack, new StringTextComponent(TextFormatting.BLACK+"Whitelist Type: "+ whitelistType()), abandonButton.x, abandonButton.y + abandonButton.getHeight() + 40, 16777215);
 		}
 		if (!chunkView) {
-			this.font.func_238422_b_(mStack, new StringTextComponent("Min Rank:"), publicToggleButton.x + publicToggleButton.getWidth() + 3, publicToggleButton.y, 16777215);
-			this.font.func_238422_b_(mStack, new StringTextComponent("Leader"), publicToggleButton.x + publicToggleButton.getWidth() + 3, publicToggleButton.y+11, 16777215); //TODO replace text with rank variable	
+			this.font.func_238422_b_(mStack, new StringTextComponent(TextFormatting.BLACK+"Min Rank:"), publicToggleButton.x + publicToggleButton.getWidth() + 3, publicToggleButton.y, 16777215);
+			this.font.func_238422_b_(mStack, new StringTextComponent(TextFormatting.BLACK+String.valueOf(ckData.get(selectedCK).data.permMin)), publicToggleButton.x + publicToggleButton.getWidth() + 3, publicToggleButton.y+11, 16777215); //TODO replace text with rank variable	
 			this.font.func_238422_b_(mStack, new StringTextComponent(TextFormatting.BLACK+"Whitelist: "+TextFormatting.RED+"Break"+TextFormatting.BLUE+" Interact"), whiteList.x, whiteList.y-10, 16777215);
 			this.font.func_238422_b_(mStack, new StringTextComponent(TextFormatting.BLACK+"Sublet Rate:"), subletCostField.x, subletCostField.y-10, 16777215);
 			this.font.func_238422_b_(mStack, new StringTextComponent(TextFormatting.BLACK+"Rent Duration (in Hours)"), subletDurationField.x, subletDurationField.y-10, 16777215);
@@ -245,43 +285,66 @@ public class GuiLandManager extends Screen{
 		super.render(mStack, mouseX, mouseY, partialTicks);
 	}
 	
-	private void renderMap(MatrixStack mStack, int left, int top, int d) {
-		int ivl = (d)/176;
+	private void renderMap(int left, int top, int d) {
+		double ivl = (double)d/176.0;
 		for (int x = 0; x < 176; x++) {
 			for (int z = 0; z < 176; z++) {
 				Color color = new Color(mapColors[x][z]);
-				int l = left+(x*ivl);
-				int t = top+(z*ivl);
-				fill(mStack, l+ivl, t, l, t+ivl, color.getRGB());
+				double l = (double)left+((double)x*ivl);
+				double t = (double)top+((double)z*ivl);
+				rect(l, t, l+ivl, t+ivl, color.getRGB());
 			}
 		}
 		for (int v = 1; v < 11; v++) {
-			fill(mStack, left+(ivl*v*16), top, left+(ivl*v*16)+1, top+d-3, Color.BLACK.getRGB());
+			rect((double)left+(((double)d/11.0)*(double)v), (double)top, (double)left+(((double)d/11.0)*(double)v)+1, (double)top+(double)d, Color.BLACK.getRGB());
         }
         for (int h = 1; h < 11; h++) {
-        	fill(mStack, left, top+(ivl*h*16), left+d-3, top+(ivl*h*16)+1, Color.BLACK.getRGB());
+        	rect((double)left, (double)top+(((double)d/11.0)*(double)h), (double)left+(double)d, (double)top+(((double)d/11.0)*(double)h)+1, Color.BLACK.getRGB());
         }
 	}
 	
-	private void renderOverlay(MatrixStack mStack, int left, int top, int d) {
-		int ivl = (d)/11;
-		int x = left + (ivl*(5+(selectedCK.x-center.x)));
-		int y = top + (ivl*(5+(selectedCK.z-center.z)));
+	private void renderOverlay(int left, int top, int d) {
+		double ivl = (d)/11;
+		double x = (double)left + (ivl*(double)(5+(selectedCK.x-center.x)));
+		double y = (double)top + (ivl*(double)(5+(selectedCK.z-center.z)));
 		//draw selection box
-		fill(mStack, x, y, x+ivl, y+ivl, 0x800000FF);
+		rect(x+1d, y+1d, x+1d+ivl, y+1d+ivl, 0x800000FF);
 		//draw overlay if toggled on
 		if (overlayView) {
 			for (int x1 = 0; x1 < 11; x1++) {
 				for (int z1 = 0; z1 < 11; z1++) {
 					ChunkPos pos = new ChunkPos(center.x+(-5+x1), center.z+(-5+z1));
-					int x2 = left+(ivl*x1*16);
-					int y2 = top+ (ivl*z1*16);
-					if (!ckData.get(pos).data.owner.equals(GnC.NIL)) fill(mStack, x2, y2, x2+ivl, y2+ivl, overlayColors.getOrDefault(pos, new Color(0x00000000)).getRGB());
+					double x2 = (double)left+(ivl*(double)x1*16d);
+					double y2 = (double)top+ (ivl*(double)z1*16d);
+					if (!ckData.get(pos).data.owner.equals(GnC.NIL)) rect(x2, y2, x2+ivl, y2+ivl, overlayColors.getOrDefault(pos, new Color(0x00000000)).getRGB());
 				}
 			}
 		}
 
 	}
+	
+	private static void rect(double x1, double y1, double x2, double y2, int color) {
+	      if (x1 < x2) { double i = x1; x1 = x2; x2 = i; }
+	      if (y1 < y2) { double j = y1; y1 = y2; y2 = j; }
+
+	      float f3 = (float)(color >> 24 & 255) / 255.0F;
+	      float f = (float)(color >> 16 & 255) / 255.0F;
+	      float f1 = (float)(color >> 8 & 255) / 255.0F;
+	      float f2 = (float)(color & 255) / 255.0F;
+	      BufferBuilder bufferbuilder = Tessellator.getInstance().getBuffer();
+	      RenderSystem.enableBlend();
+	      RenderSystem.disableTexture();
+	      RenderSystem.defaultBlendFunc();
+	      bufferbuilder.begin(7, DefaultVertexFormats.POSITION_COLOR);
+	      bufferbuilder.pos(x1, y2, 0.0F).color(f, f1, f2, f3).endVertex();
+	      bufferbuilder.pos(x2, y2, 0.0F).color(f, f1, f2, f3).endVertex();
+	      bufferbuilder.pos(x2, y1, 0.0F).color(f, f1, f2, f3).endVertex();
+	      bufferbuilder.pos(x1, y1, 0.0F).color(f, f1, f2, f3).endVertex();
+	      bufferbuilder.finishDrawing();
+	      WorldVertexBufferUploader.draw(bufferbuilder);
+	      RenderSystem.enableTexture();
+	      RenderSystem.disableBlend();
+	   }
 	
 	private void actionBack() {minecraft.displayGuiScreen(parentScreen);}
 	private void actionChunkToggle() {chunkView = true; updateVisibility();}
@@ -326,6 +389,10 @@ public class GuiLandManager extends Screen{
 		return false;
 	}
 	
+	private String whitelistType() {
+		return "NONE";
+	}
+	
 	private Map<ChunkPos, Color> generateMapColors() {
 		Map<ChunkPos, Color> map = new HashMap<ChunkPos, Color>();
 		for (Map.Entry<ChunkPos, ChunkSummary> entry : ckData.entrySet()) {
@@ -339,61 +406,213 @@ public class GuiLandManager extends Screen{
 	}
 	
 	class PlayerListPanel extends ScrollPanel {
-		public int x, y, right, bottom;
+        private List<ITextProperties> lines = Collections.emptyList();
+        public int x, y, width, height, selectedItem;
 
-		public PlayerListPanel(Minecraft client, int width, int height, int top, int left) {
-			super(client, width, height, top, left);
-			x = left;
-			y = top;
-			right = x + width;
-			bottom = y + height;
-			// TODO Add to params populating data
-		}
-		
-		public void refresh() {
-			//TODO add parameter to update new data
-		}
+        public PlayerListPanel(Minecraft mcIn, int width, int height, int y, int x)
+        {
+            super(mcIn, width, height, y, x);
+            this.x = x;
+            this.y = y;
+            this.width = width;
+            this.height = height;
+            selectedItem = -1;
+        }
 
-		@Override
-		protected int getContentHeight() {
-			// TODO Auto-generated method stub
-			return 0;
-		}
+        void setInfo(Map<UUID, String> lines, UUID renter) { 
+        	List<String> list = new ArrayList<String>();
+        	list.add(lines.getOrDefault(renter, "NO RENTER"));
+        	for (Map.Entry<UUID, String> entries : lines.entrySet()) {
+        		if (!entries.getKey().equals(renter)) list.add(entries.getValue());
+        	}
+        	this.lines = resizeContent(list); 
+        }
 
-		@Override
-		protected void drawPanel(MatrixStack mStack, int entryRight, int relativeY, Tessellator tess, int mouseX, int mouseY) {
-			// TODO Auto-generated method stub			
-		}
-		
-	}
-	
+        void clearInfo() { this.lines = Collections.emptyList(); }
+
+        private List<ITextProperties> resizeContent(List<String> lines) {
+            List<ITextProperties> ret = new ArrayList<>();
+            for (String line : lines) {
+                if (line == null) {
+                    ret.add(null);
+                    continue;
+                }
+                ITextComponent chat = ForgeHooks.newChatWithLinks(line, false);
+                int maxTextLength = this.width - 12;
+                if (maxTextLength >= 0) {
+                    ret.addAll(font.func_238420_b_().func_238362_b_(chat, maxTextLength, Style.EMPTY));
+                }
+            }
+            return ret;
+        }
+
+        @Override
+        public int getContentHeight() {
+            int height = 50;
+            height += (lines.size() * font.FONT_HEIGHT);
+            if (height < this.bottom - this.top - 8)
+                height = this.bottom - this.top - 8;
+            return height;
+        }
+
+        @Override
+        protected int getScrollAmount() { return font.FONT_HEIGHT * 3; }
+
+        @Override
+        protected void drawPanel(MatrixStack mStack, int entryRight, int relativeY, Tessellator tess, int mouseX, int mouseY)
+        {
+            for (int i = 0; i < lines.size(); i++){
+                if (lines.get(i) != null)
+                {
+                	if (i == selectedItem) {
+                    	hLine(mStack, left, left+width, relativeY-1, Color.YELLOW.getRGB());
+                    	hLine(mStack, left, left+width, relativeY-1+font.FONT_HEIGHT, Color.YELLOW.getRGB());
+                    	vLine(mStack, left, relativeY-1, relativeY-1+font.FONT_HEIGHT, Color.YELLOW.getRGB());
+                    	vLine(mStack, left+width-1, relativeY-1, relativeY-1+font.FONT_HEIGHT, Color.YELLOW.getRGB());
+                    }
+                    RenderSystem.enableBlend();
+                    GuiLandManager.this.font.func_238407_a_(mStack, lines.get(i), left+1, relativeY, 0xFFFFFF);
+                    RenderSystem.disableAlphaTest();
+                    RenderSystem.disableBlend();
+                }
+                relativeY += font.FONT_HEIGHT;
+            }
+        }
+
+        private Style findTextLine(final int mouseX, final int mouseY) {
+            double offset = (mouseY - top) + border + scrollDistance + 1;
+
+            int lineIdx = (int) (offset / font.FONT_HEIGHT);
+            if (lineIdx > lines.size() || lineIdx < 1)
+                return null;
+
+            ITextProperties line = lines.get(lineIdx-1);
+            selectedItem = lineIdx-1;
+            if (line != null)
+            {
+                return font.func_238420_b_().func_238357_a_(line, mouseX);
+            }
+            return null;
+        }
+
+        @Override
+        public boolean mouseClicked(final double mouseX, final double mouseY, final int button) {
+            final Style component = findTextLine((int) mouseX, (int) mouseY);
+            if (component != null) {
+                GuiLandManager.this.handleComponentClicked(component);
+                return true;
+            }
+            return super.mouseClicked(mouseX, mouseY, button);
+        }
+
+        @Override
+        protected void drawBackground() {}
+	}	
+
 	class WhiteListPanel extends ScrollPanel {
-		public int x, y, right, bottom;
+		 private List<ITextProperties> lines = Collections.emptyList();
+	        public int x, y, width, height, selectedItem;
 
-		public WhiteListPanel(Minecraft client, int width, int height, int top, int left) {
-			super(client, width, height, top, left);
-			x = left;
-			y = top;
-			right = x + width;
-			bottom = y + height;
-			// TODO Add to params populating data
-		}
-		
-		public void refresh() {
-			//TODO add parameter to update new data
-		}
+	        public WhiteListPanel(Minecraft mcIn, int width, int height, int y, int x)
+	        {
+	            super(mcIn, width, height, y, x);
+	            this.x = x;
+	            this.y = y;
+	            this.width = width;
+	            this.height = height;
+	            selectedItem = -1;
+	        }
 
-		@Override
-		protected int getContentHeight() {
-			// TODO Auto-generated method stub
-			return 0;
-		}
+	        void setInfo(List<WhitelistItem> wl) { 
+	        	List<String> list = new ArrayList<String>();
+	        	for (WhitelistItem entries : wl) {
+	        		String line = entries.getBlock()+entries.getEntity();
+	        		line += TextFormatting.RED+(entries.getCanBreak() ? " Yes " : " No ");
+	        		line += TextFormatting.BLUE+(entries.getCanInteract() ? "Yes" : "No");
+	        		list.add(line);
+	        	}
+	        	this.lines = resizeContent(list); 
+	        }
 
-		@Override
-		protected void drawPanel(MatrixStack mStack, int entryRight, int relativeY, Tessellator tess, int mouseX, int mouseY) {
-			// TODO Auto-generated method stub			
-		}
-		
+	        void clearInfo() { this.lines = Collections.emptyList(); }
+
+	        private List<ITextProperties> resizeContent(List<String> lines) {
+	            List<ITextProperties> ret = new ArrayList<>();
+	            for (String line : lines) {
+	                if (line == null) {
+	                    ret.add(null);
+	                    continue;
+	                }
+	                ITextComponent chat = ForgeHooks.newChatWithLinks(line, false);
+	                int maxTextLength = this.width - 12;
+	                if (maxTextLength >= 0) {
+	                    ret.addAll(font.func_238420_b_().func_238362_b_(chat, maxTextLength, Style.EMPTY));
+	                }
+	            }
+	            return ret;
+	        }
+
+	        @Override
+	        public int getContentHeight() {
+	            int height = 50;
+	            height += (lines.size() * font.FONT_HEIGHT);
+	            if (height < this.bottom - this.top - 8)
+	                height = this.bottom - this.top - 8;
+	            return height;
+	        }
+
+	        @Override
+	        protected int getScrollAmount() { return font.FONT_HEIGHT * 3; }
+
+	        @Override
+	        protected void drawPanel(MatrixStack mStack, int entryRight, int relativeY, Tessellator tess, int mouseX, int mouseY)
+	        {
+	            for (int i = 0; i < lines.size(); i++){
+	                if (lines.get(i) != null)
+	                {
+	                	if (i == selectedItem) {
+	                    	hLine(mStack, left, left+width, relativeY-1, Color.YELLOW.getRGB());
+	                    	hLine(mStack, left, left+width, relativeY-1+font.FONT_HEIGHT, Color.YELLOW.getRGB());
+	                    	vLine(mStack, left, relativeY-1, relativeY-1+font.FONT_HEIGHT, Color.YELLOW.getRGB());
+	                    	vLine(mStack, left+width-1, relativeY-1, relativeY-1+font.FONT_HEIGHT, Color.YELLOW.getRGB());
+	                    }
+	                    RenderSystem.enableBlend();
+	                    GuiLandManager.this.font.func_238407_a_(mStack, lines.get(i), left+1, relativeY, 0xFFFFFF);
+	                    RenderSystem.disableAlphaTest();
+	                    RenderSystem.disableBlend();
+	                }
+	                relativeY += font.FONT_HEIGHT;
+	            }
+	        }
+
+	        private Style findTextLine(final int mouseX, final int mouseY) {
+	            double offset = (mouseY - top) + border + scrollDistance + 1;
+
+	            int lineIdx = (int) (offset / font.FONT_HEIGHT);
+	            if (lineIdx > lines.size() || lineIdx < 1)
+	                return null;
+
+	            ITextProperties line = lines.get(lineIdx-1);
+	            selectedItem = lineIdx-1;
+	            if (line != null)
+	            {
+	                return font.func_238420_b_().func_238357_a_(line, mouseX);
+	            }
+	            return null;
+	        }
+
+	        @Override
+	        public boolean mouseClicked(final double mouseX, final double mouseY, final int button) {
+	            final Style component = findTextLine((int) mouseX, (int) mouseY);
+	            if (component != null) {
+	                GuiLandManager.this.handleComponentClicked(component);
+	                return true;
+	            }
+	            return super.mouseClicked(mouseX, mouseY, button);
+	        }
+
+	        @Override
+	        protected void drawBackground() {}
 	}
 
 	public static class ChunkSummary {

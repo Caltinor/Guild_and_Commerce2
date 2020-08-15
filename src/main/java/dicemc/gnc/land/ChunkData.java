@@ -19,7 +19,7 @@ public class ChunkData {
 	public UUID renter = GnC.NIL;
 	public double price = Config.DEFAULT_LAND_PRICE.get();
 	public double leasePrice = -1;
-	public long leaseDuration = 0;
+	public int leaseDuration = 0;
 	public int permMin = 1;
 	public long rentEnd = System.currentTimeMillis() + Config.TEMPCLAIM_DURATION.get();
 	public boolean isPublic = false;
@@ -33,7 +33,7 @@ public class ChunkData {
 	
 	public ChunkData(CompoundNBT nbt) {
 		pos = new ChunkPos(nbt.getLong("pos"));
-		leaseDuration = nbt.getLong("leaseduration");
+		leaseDuration = nbt.getInt("leaseduration");
 		rentEnd = nbt.getLong("rentend");
 		owner = nbt.getUniqueId("owner");
 		renter = nbt.getUniqueId("renter");
@@ -57,7 +57,7 @@ public class ChunkData {
 	public CompoundNBT toNBT() {
 		CompoundNBT nbt = new CompoundNBT();
 		nbt.putLong("pos", pos.asLong());
-		nbt.putLong("leaseduration", leaseDuration);
+		nbt.putInt("leaseduration", leaseDuration);
 		nbt.putLong("rentend", rentEnd);
 		nbt.putUniqueId("owner", owner);
 		nbt.putUniqueId("renter", renter);

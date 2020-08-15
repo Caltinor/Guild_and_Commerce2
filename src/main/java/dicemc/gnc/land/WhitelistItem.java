@@ -4,10 +4,10 @@ import net.minecraft.entity.Entity;
 import net.minecraft.nbt.CompoundNBT;
 
 public class WhitelistItem {
-	public String refBlock = "";
-	public String refEntity = "";
-	public boolean canBreak = false;
-	public boolean canInteract = false;
+	private String refBlock = "";
+	private String refEntity = "";
+	private boolean canBreak = false;
+	private boolean canInteract = false;
 
 	public WhitelistItem(Entity entity) {
 		refEntity = entity.getClass().getSimpleName();

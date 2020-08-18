@@ -172,7 +172,7 @@ public class GuildManager {
     	int highest = 0;
     	while (highest >= 0) {
     		highest++;
-    		if (gmap.get(guildID).permLevels.get(highest) == null) highest = -2;
+    		if (gmap.get(guildID).permLevels.get(highest) == null) break;
     	}
     	gmap.get(guildID).permLevels.put(highest, title);
     	return "Rank Added";
@@ -199,6 +199,15 @@ public class GuildManager {
     *@param guildID the guild's unique ID
     */
     public Map<Integer, String> getRanks(UUID guildID) {return gmap.get(guildID).permLevels;}
+    
+    public int getBottomRank(UUID guildID) {
+    	int highest = 0;
+    	while (highest >= 0) {
+    		highest++;
+    		if (gmap.get(guildID).permLevels.get(highest) == null) break;
+    	}
+    	return highest;
+    }
 
     /**
     * used to add new permission records to a new guild.  should not be called elsewhere.

@@ -38,7 +38,6 @@ public class PacketGuiRequest {
 				}
 				ServerWorld server = ctx.get().getSender().getServerWorld();
 				ChunkPos center = new ChunkPos(ctx.get().getSender().chunkCoordX, ctx.get().getSender().chunkCoordZ);
-				//collect center and adjacent chunk summaries
 				List<ChunkSummary> chunkData = new ArrayList<ChunkSummary>();
 				for (int x = center.x-6; x <= center.x+6; x++) {
 					for (int z = center.z-6; z <= center.z+6; z++) {
@@ -78,7 +77,6 @@ public class PacketGuiRequest {
 	private String ownerName(ChunkPos pos, ServerWorld server) {
 		if (GnC.ckMgr.getChunk(pos).owner.equals(GnC.NIL)) {return "Unowned";}
 		if (GnC.gMgr.getGuildByID(GnC.ckMgr.getChunk(pos).owner) != null) {return GnC.gMgr.getGuildByID(GnC.ckMgr.getChunk(pos).owner).name;}
-		if (server.getPlayerByUuid(GnC.ckMgr.getChunk(pos).owner) != null) {return server.getPlayerByUuid(GnC.ckMgr.getChunk(pos).owner).getDisplayName().toString();}
 		return "Logical Error";
 	}
 }

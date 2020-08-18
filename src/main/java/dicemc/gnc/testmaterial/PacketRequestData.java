@@ -6,17 +6,24 @@ import net.minecraft.network.PacketBuffer;
 import net.minecraftforge.fml.network.NetworkEvent;
 
 public class PacketRequestData {
+	private final int igr;
 	
-	private final int gui;
+	public PacketRequestData(PacketBuffer buf) {
+		igr = buf.readInt();
+	}
 	
-	public PacketRequestData(PacketBuffer buf) {gui = buf.readInt();}
+	public PacketRequestData(int igr) {
+		this.igr = igr;
+	}
 	
-	public PacketRequestData(int guiType) {this.gui = guiType;}
-	
-	public void toBytes(PacketBuffer buf) {buf.writeInt(gui);}
+	public void toBytes(PacketBuffer buf) {
+		buf.writeInt(igr);
+	}
  	
 	public boolean handle(Supplier<NetworkEvent.Context> ctx) {
-		ctx.get().enqueueWork(() -> {System.out.println("Packet Worked");});
+		ctx.get().enqueueWork(() -> {
+			System.out.println("Packet Worked");
+		});
 		return true;
 	}
 }

@@ -20,5 +20,6 @@ public class CommonSetup {
 	@SubscribeEvent
 	public static void onServerStart(FMLServerStartedEvent event) {
 		if (Config.MARKET_USE_DB.get())  {GnC.DBMgr = new DatabaseManager();}
+		GnC.ckMgr.setServer(event.getServer());
 	}
 }

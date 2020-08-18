@@ -18,6 +18,8 @@ import dicemc.gnc.guild.Guild;
 import dicemc.gnc.guild.Guild.permKey;
 import dicemc.gnc.land.ChunkData;
 import dicemc.gnc.land.WhitelistItem;
+import dicemc.gnc.land.network.PacketChunkDataToServer;
+import dicemc.gnc.setup.Networking;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.TextFieldWidget;
@@ -65,6 +67,20 @@ public class GuiLandManager extends Screen{
 	public static void open(double balG, double balP, Guild guild, int[][] mapColors, ChunkPos center, List<ChunkSummary> summary) {
 		Screen parent = Minecraft.getInstance().currentScreen;
 		Minecraft.getInstance().displayGuiScreen(new GuiLandManager(parent, balG, balP, guild, mapColors, center, summary));
+	}
+	
+	public static void sync(double balG, double balP, Guild guild, List<ChunkSummary> summary, String resp) {
+		GuiLandManager screen = (GuiLandManager) Minecraft.getInstance().currentScreen;
+		screen.updateGui(balG, balP, guild, summary, resp);
+	}
+	
+	protected void updateGui(double balG, double balP, Guild guild, List<ChunkSummary> summary, String resp) {
+		this.balP = balP;
+		this.balG = balG;
+		this.myGuild = guild != null ? guild : myGuild;
+		for (int i = 0; i < summary.size(); i++) {this.ckData.put(summary.get(i).data.pos, summary.get(i));}
+		updateVisibility();
+		this.response = resp;
 	}
 	
 	protected GuiLandManager(Screen parentScreen, double balG, double balP, Guild guild, int[][] mapColors, ChunkPos center, List<ChunkSummary> summary) {
@@ -144,6 +160,7 @@ public class GuiLandManager extends Screen{
 	}
 	
 	private void updateVisibility() {
+		response = "Account: $"+df.format(balP) +" [Guild $"+df.format(balG)+"]";
 		chunkButton.active = !chunkView;
 		subletButton.active = chunkView;
 		overlayButton.setMessage(overlayView ? new StringTextComponent("Overlay: On") : new StringTextComponent("Overlay: Off"));
@@ -177,7 +194,9 @@ public class GuiLandManager extends Screen{
 		updateSubletButton.visible = !chunkView;
 		updateSubletButton.active = ckData.get(selectedCK).data.owner.equals(myGuild.guildID) && isPermitted(permKey.SUBLET_MANAGE);		
 		publicToggleButton.visible = !chunkView;
-		publicToggleButton.active = ckData.get(selectedCK).data.owner.equals(myGuild.guildID) && isPermitted(permKey.SUBLET_MANAGE);
+		publicToggleButton.active = (ckData.get(selectedCK).data.owner.equals(myGuild.guildID) && isPermitted(permKey.SUBLET_MANAGE)  ||
+										ckData.get(selectedCK).data.renter.equals(minecraft.getInstance().player.getUniqueID()));
+		publicToggleButton.setMessage(new StringTextComponent(ckData.get(selectedCK).data.isPublic ? "Public: Yes" : "Public: No"));
 		disableSubletButton.visible = !chunkView;
 		disableSubletButton.active = ckData.get(selectedCK).data.owner.equals(myGuild.guildID) && isPermitted(permKey.SUBLET_MANAGE);
 		minRankIncreaseButton.visible = !chunkView;
@@ -191,9 +210,11 @@ public class GuiLandManager extends Screen{
 		clearWhitelistButton.visible = !chunkView;
 		clearWhitelistButton.active = ckData.get(selectedCK).data.owner.equals(myGuild.guildID) && isPermitted(permKey.SUBLET_MANAGE);
 		memberRemoveButton.visible = !chunkView;
-		memberRemoveButton.active = ckData.get(selectedCK).data.owner.equals(myGuild.guildID) && isPermitted(permKey.SUBLET_MANAGE);
+		memberRemoveButton.active = (ckData.get(selectedCK).data.owner.equals(myGuild.guildID) && isPermitted(permKey.SUBLET_MANAGE) ||
+									ckData.get(selectedCK).data.renter.equals(minecraft.getInstance().player.getUniqueID()));
 		memberAddButton.visible = !chunkView;
-		memberAddButton.active = ckData.get(selectedCK).data.owner.equals(myGuild.guildID) && isPermitted(permKey.SUBLET_MANAGE);
+		memberAddButton.active = (ckData.get(selectedCK).data.owner.equals(myGuild.guildID) && isPermitted(permKey.SUBLET_MANAGE) ||
+									ckData.get(selectedCK).data.renter.equals(minecraft.getInstance().player.getUniqueID()));
 		subletCostField.visible = !chunkView;
 		subletCostField.setEnabled(updateSubletButton.active);
 		subletCostField.setText(String.valueOf(ckData.get(selectedCK).data.leasePrice));
@@ -350,21 +371,27 @@ public class GuiLandManager extends Screen{
 	private void actionChunkToggle() {chunkView = true; updateVisibility();}
 	private void actionSubletToggle() {chunkView = false; updateVisibility();}
 	private void actionOverlayToggle() {overlayView = overlayView ? false : true; updateVisibility();}
-	private void actionTempClaim() {}
-	private void actionGuildClaim() {}
+	private void actionTempClaim() {Networking.sendToServer(new PacketChunkDataToServer(PacketChunkDataToServer.PkType.TEMPCLAIM, selectedCK, Minecraft.getInstance().player.getUniqueID()));}
+	private void actionGuildClaim() {Networking.sendToServer(new PacketChunkDataToServer(PacketChunkDataToServer.PkType.GUILDCLAIM, selectedCK, Minecraft.getInstance().player.getUniqueID()));}
 	private void actionAbandon() {}
-	private void actionExtend() {}
+	private void actionExtend() {Networking.sendToServer(new PacketChunkDataToServer(PacketChunkDataToServer.PkType.EXTEND, selectedCK, Minecraft.getInstance().player.getUniqueID()));}
 	private void actionSell() {}
 	private void actionUpdateSublet() {}
-	private void actionPublicToggle() {} 
+	private void actionPublicToggle() {Networking.sendToServer(new PacketChunkDataToServer(PacketChunkDataToServer.PkType.PUBLIC, selectedCK, !ckData.get(selectedCK).data.isPublic));} 
 	private void actionMinRankIncrease() {}
 	private void actionMinRankDecrease() {}
 	private void actionDisableSublet() {} 
 	private void actionBreakToggle() {}
 	private void actionInteractToggle() {}
 	private void actionClearWhitelist() {}
-	private void actionMemberAdd() {}
-	private void actionMemberRemove() {} 
+	private void actionMemberAdd() {
+		Networking.sendToServer(new PacketChunkDataToServer(PacketChunkDataToServer.PkType.MEMBER, selectedCK, playerAddField.getText()));
+		playerAddField.setText("");
+	}
+	private void actionMemberRemove() {
+		Networking.sendToServer(new PacketChunkDataToServer(PacketChunkDataToServer.PkType.MEMBER, selectedCK, playerList.getSelected()));
+		playerList.selectedItem = 0;
+	} 
 	
 	private boolean guildOwnedNeighbor() {
 		if (ckData.get(new ChunkPos(selectedCK.x-1, selectedCK.z)).data.owner.equals(myGuild.guildID)) return true;
@@ -390,7 +417,11 @@ public class GuiLandManager extends Screen{
 	}
 	
 	private String whitelistType() {
-		return "NONE";
+		if (ckData.get(selectedCK).data.isPublic) return TextFormatting.GREEN+"PUBLIC";
+		if (ckData.get(selectedCK).data.whitelist.size() == 0) {
+			return ckData.get(selectedCK).data.permittedPlayers.size() == 0 ? TextFormatting.BLACK+"MEMBERS ONLY" : TextFormatting.RED+"RENTED (U)";
+		}
+		else { return ckData.get(selectedCK).data.permittedPlayers.size() == 0 ? TextFormatting.YELLOW+"SPECIAL ACCESS" : TextFormatting.RED+"RENTED (R)";}
 	}
 	
 	private Map<ChunkPos, Color> generateMapColors() {
@@ -419,6 +450,8 @@ public class GuiLandManager extends Screen{
             selectedItem = -1;
         }
 
+        public String getSelected() {return lines.get(selectedItem).getString();}
+        
         void setInfo(Map<UUID, String> lines, UUID renter) { 
         	List<String> list = new ArrayList<String>();
         	list.add(lines.getOrDefault(renter, "NO RENTER"));

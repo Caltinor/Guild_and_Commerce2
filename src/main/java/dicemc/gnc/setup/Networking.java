@@ -2,7 +2,10 @@ package dicemc.gnc.setup;
 
 import dicemc.gnc.GnC;
 import dicemc.gnc.common.PacketGuiRequest;
+import dicemc.gnc.land.network.PacketChunkDataToServer;
 import dicemc.gnc.land.network.PacketOpenGui_Land;
+import dicemc.gnc.land.network.PacketUpdateChunkManagerGui;
+import dicemc.gnc.testmaterial.PacketRequestData;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.fml.network.NetworkDirection;
@@ -31,6 +34,16 @@ public class Networking {
 			.encoder(PacketGuiRequest::toBytes)
 			.decoder(PacketGuiRequest::new)
 			.consumer(PacketGuiRequest::handle)
+			.add();
+		INSTANCE.messageBuilder(PacketChunkDataToServer.class, nextID())
+			.encoder(PacketChunkDataToServer::toBytes)
+			.decoder(PacketChunkDataToServer::new)
+			.consumer(PacketChunkDataToServer::handle)
+			.add();
+		INSTANCE.messageBuilder(PacketUpdateChunkManagerGui.class, nextID())
+			.encoder(PacketUpdateChunkManagerGui::toBytes)
+			.decoder(PacketUpdateChunkManagerGui::new)
+			.consumer(PacketUpdateChunkManagerGui::handle)
 			.add();
 		//INSERT PACKETS HERE.
 	}

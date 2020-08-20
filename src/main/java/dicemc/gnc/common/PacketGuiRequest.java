@@ -6,8 +6,8 @@ import java.util.UUID;
 import java.util.function.Supplier;
 
 import dicemc.gnc.GnC;
-import dicemc.gnc.account.AccountUtils;
 import dicemc.gnc.guild.Guild;
+import dicemc.gnc.guild.network.PacketOpenGui_NoGuild;
 import dicemc.gnc.land.network.PacketOpenGui_Land;
 import dicemc.gnc.land.client.GuiLandManager.ChunkSummary;
 import dicemc.gnc.setup.Networking;
@@ -42,7 +42,7 @@ public class PacketGuiRequest {
 				for (int x = center.x-6; x <= center.x+6; x++) {
 					for (int z = center.z-6; z <= center.z+6; z++) {
 						ChunkPos pos = new ChunkPos(x, z);
-						chunkData.add(new ChunkSummary(GnC.ckMgr.getChunk(pos), ownerName(pos, server)));
+						chunkData.add(new ChunkSummary(GnC.ckMgr.getChunk(pos, ctx.get().getSender().getEntityWorld().func_234923_W_()), ownerName(pos, server, ctx)));
 					}
 				}
 				//Start mapColors gathering
@@ -60,13 +60,25 @@ public class PacketGuiRequest {
 					}
 				}
 				//end mapColors gathering
-				double balG = gid.equals(GnC.NIL) ? 0.0 : AccountUtils.getBalance(gid);
-				double balP = AccountUtils.getBalance(ctx.get().getSender().getUniqueID());
+				double balG = gid.equals(GnC.NIL) ? 0.0 : GnC.aMgr.getBalance(gid);
+				double balP = GnC.aMgr.getBalance(ctx.get().getSender().getUniqueID());
 				Networking.sendToClient(new PacketOpenGui_Land(balG, balP, guild, mapColors, center, chunkData), ctx.get().getSender()); 
 				break;
 			}
 			case 1: {break;}
-			case 2: {break;}
+			case 2: {
+				Guild guild = GnC.gMgr.getGuildByMember(ctx.get().getSender().getUniqueID());
+				double balP = GnC.aMgr.getBalance(ctx.get().getSender().getUniqueID());
+				if (guild == null) {
+					List<String> invites = GnC.gMgr.getInvitedGuilds(ctx.get().getSender().getUniqueID());
+					List<String> openGuilds = GnC.gMgr.getOpenGuilds(ctx.get().getSender().getUniqueID());
+					Networking.sendToClient(new PacketOpenGui_NoGuild(balP, invites, openGuilds), ctx.get().getSender());
+				}
+				else {
+					System.out.println("Uhm.  how TF do you have a guild?");
+				}
+				break;
+			}
 			default:
 			}
 			
@@ -74,9 +86,18 @@ public class PacketGuiRequest {
 		return true;
 	}
 	
-	private String ownerName(ChunkPos pos, ServerWorld server) {
-		if (GnC.ckMgr.getChunk(pos).owner.equals(GnC.NIL)) {return "Unowned";}
-		if (GnC.gMgr.getGuildByID(GnC.ckMgr.getChunk(pos).owner) != null) {return GnC.gMgr.getGuildByID(GnC.ckMgr.getChunk(pos).owner).name;}
+	private String ownerName(ChunkPos pos, ServerWorld server, Supplier<NetworkEvent.Context> ctx) {
+		if (GnC.ckMgr.getChunk(pos, ctx.get().getSender().getEntityWorld().func_234923_W_()).owner.equals(GnC.NIL) &&
+			GnC.ckMgr.getChunk(pos, ctx.get().getSender().getEntityWorld().func_234923_W_()).renter.equals(GnC.NIL)) {
+			return "Unowned";
+		}
+		if (GnC.gMgr.getGuildByID(GnC.ckMgr.getChunk(pos, ctx.get().getSender().getEntityWorld().func_234923_W_()).owner) != null) {
+			return GnC.gMgr.getGuildByID(GnC.ckMgr.getChunk(pos, ctx.get().getSender().getEntityWorld().func_234923_W_()).owner).name;
+		}
+		if (GnC.ckMgr.getChunk(pos, ctx.get().getSender().getEntityWorld().func_234923_W_()).owner.equals(GnC.NIL) &&
+			!GnC.ckMgr.getChunk(pos, ctx.get().getSender().getEntityWorld().func_234923_W_()).renter.equals(GnC.NIL)) {
+			return server.getPlayerByUuid(GnC.ckMgr.getChunk(pos, ctx.get().getSender().getEntityWorld().func_234923_W_()).renter).getScoreboardName();
+		}
 		return "Logical Error";
 	}
 }

@@ -2,6 +2,9 @@ package dicemc.gnc.setup;
 
 import dicemc.gnc.GnC;
 import dicemc.gnc.common.PacketGuiRequest;
+import dicemc.gnc.guild.network.PacketNoGuildDataToServer;
+import dicemc.gnc.guild.network.PacketOpenGui_NoGuild;
+import dicemc.gnc.guild.network.PacketUpdateGuiNoGuild;
 import dicemc.gnc.land.network.PacketChunkDataToServer;
 import dicemc.gnc.land.network.PacketOpenGui_Land;
 import dicemc.gnc.land.network.PacketUpdateChunkManagerGui;
@@ -44,6 +47,21 @@ public class Networking {
 			.encoder(PacketUpdateChunkManagerGui::toBytes)
 			.decoder(PacketUpdateChunkManagerGui::new)
 			.consumer(PacketUpdateChunkManagerGui::handle)
+			.add();
+		INSTANCE.messageBuilder(PacketOpenGui_NoGuild.class, nextID())
+			.encoder(PacketOpenGui_NoGuild::toBytes)
+			.decoder(PacketOpenGui_NoGuild::new)
+			.consumer(PacketOpenGui_NoGuild::handle)
+			.add();
+		INSTANCE.messageBuilder(PacketNoGuildDataToServer.class, nextID())
+			.encoder(PacketNoGuildDataToServer::toBytes)
+			.decoder(PacketNoGuildDataToServer::new)
+			.consumer(PacketNoGuildDataToServer::handle)
+			.add();
+		INSTANCE.messageBuilder(PacketUpdateGuiNoGuild.class, nextID())
+			.encoder(PacketUpdateGuiNoGuild::toBytes)
+			.decoder(PacketUpdateGuiNoGuild::new)
+			.consumer(PacketUpdateGuiNoGuild::handle)
 			.add();
 		//INSERT PACKETS HERE.
 	}

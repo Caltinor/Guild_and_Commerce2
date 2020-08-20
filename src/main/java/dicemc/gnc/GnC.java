@@ -8,6 +8,7 @@ import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 
 import java.util.UUID;
 
+import dicemc.gnc.account.AccountManager;
 import dicemc.gnc.datastorage.database.DatabaseManager;
 import dicemc.gnc.guild.GuildManager;
 import dicemc.gnc.land.ChunkManager;
@@ -22,6 +23,7 @@ public class GnC {
 	public static DatabaseManager DBMgr;
 	public static ChunkManager ckMgr;
 	public static GuildManager gMgr;
+	public static AccountManager aMgr;
 	
 	public GnC() {
 		ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT, Config.CLIENT_CONFIG);

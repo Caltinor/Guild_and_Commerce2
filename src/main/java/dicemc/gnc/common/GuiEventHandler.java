@@ -27,8 +27,8 @@ public class GuiEventHandler {
 			int xOffset = 80;
 			int guiY = (event.getGui().height - 166)/2;
 			chunkButton = 	new ImageButton(guiX +xOffset + 3, guiY - 17, 19, 17, 0 , 0, 19, INVENTORY_ADDITIONS, button -> chunkGuiLoad());
-			marketsButton = new ImageButton(guiX +xOffset +21, guiY - 17, 19, 17, 63, 0, 19, INVENTORY_ADDITIONS, button -> marketGuiLoad());
-			guildButton = 	new ImageButton(guiX +xOffset +39, guiY - 17, 19, 17, 21, 0, 19, INVENTORY_ADDITIONS, button -> guildGuiLoad());
+			marketsButton = new ImageButton(guiX +xOffset +33, guiY - 17, 19, 17, 63, 0, 19, INVENTORY_ADDITIONS, button -> marketGuiLoad());
+			guildButton = 	new ImageButton(guiX +xOffset +63, guiY - 32, 32, 32, 124, 0, 32, INVENTORY_ADDITIONS, button -> guildGuiLoad());
 			event.addWidget(chunkButton);
 			event.addWidget(marketsButton);
 			event.addWidget(guildButton);

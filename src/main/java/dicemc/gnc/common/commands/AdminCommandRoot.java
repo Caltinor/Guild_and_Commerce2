@@ -1,4 +1,4 @@
-package dicemc.gnc.commands;
+package dicemc.gnc.common.commands;
 
 public class AdminCommandRoot {
 	/*TODO Commands to be implemented

@@ -48,6 +48,7 @@ public class GuiLandManager extends Screen{
 	private ChunkPos selectedCK;
 	private Map<ChunkPos, Color> overlayColors;
 	private int d, mapX, mapY;
+	private String ownerText;
 	//Objects
 	private Button backButton, chunkButton, subletButton, overlayButton;
 	private Button tempClaimButton, guildClaimButton, abandonButton, extendButton, sellButton;
@@ -160,6 +161,7 @@ public class GuiLandManager extends Screen{
 	}
 	
 	private void updateVisibility() {
+		ownerText = 
 		response = "Account: $"+df.format(balP) +" [Guild $"+df.format(balG)+"]";
 		chunkButton.active = !chunkView;
 		subletButton.active = chunkView;
@@ -167,7 +169,7 @@ public class GuiLandManager extends Screen{
 		
 		//chunk toggle items
 		tempClaimButton.visible = chunkView;
-		tempClaimButton.active = ckData.get(selectedCK).data.owner.equals(GnC.NIL);
+		tempClaimButton.active = ckData.get(selectedCK).data.owner.equals(GnC.NIL) && ckData.get(selectedCK).data.renter.equals(GnC.NIL);
 		
 		boolean gon = guildOwnedNeighbor();
 		guildClaimButton.visible = chunkView;
@@ -233,9 +235,8 @@ public class GuiLandManager extends Screen{
 	public boolean isPauseScreen() {return false;}
 	
 	@Override
-	public boolean keyPressed(int p_231046_1_, int p_231046_2_, int p_231046_3_) {
-		//input if statement for the keycode being used.  guess the mappings
-		return super.keyPressed(p_231046_1_, p_231046_2_, p_231046_3_);
+	public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+		return super.keyPressed(keyCode, scanCode, modifiers);
 	}
 	
 	public boolean charTyped(char ch, int a) {
@@ -381,9 +382,17 @@ public class GuiLandManager extends Screen{
 	private void actionMinRankIncrease() {}
 	private void actionMinRankDecrease() {}
 	private void actionDisableSublet() {} 
-	private void actionBreakToggle() {}
-	private void actionInteractToggle() {}
-	private void actionClearWhitelist() {}
+	private void actionBreakToggle() { //TODO UNTESTED
+		WhitelistItem wlItem = ckData.get(selectedCK).data.whitelist.get(whiteList.selectedItem);
+		wlItem.setCanBreak(!wlItem.getCanBreak());
+		Networking.sendToServer(new PacketChunkDataToServer(PacketChunkDataToServer.PkType.INTERACT, selectedCK, wlItem.toNBT().toString()));
+	}
+	private void actionInteractToggle() { //TODO UNTESTED
+		WhitelistItem wlItem = ckData.get(selectedCK).data.whitelist.get(whiteList.selectedItem);
+		wlItem.setCanBreak(!wlItem.getCanBreak());
+		Networking.sendToServer(new PacketChunkDataToServer(PacketChunkDataToServer.PkType.INTERACT, selectedCK, wlItem.toNBT().toString()));
+	}
+	private void actionClearWhitelist() {Networking.sendToServer(new PacketChunkDataToServer(PacketChunkDataToServer.PkType.CLEARWL, selectedCK));}
 	private void actionMemberAdd() {
 		Networking.sendToServer(new PacketChunkDataToServer(PacketChunkDataToServer.PkType.MEMBER, selectedCK, playerAddField.getText()));
 		playerAddField.setText("");
@@ -555,7 +564,7 @@ public class GuiLandManager extends Screen{
 	            this.height = height;
 	            selectedItem = -1;
 	        }
-
+	        
 	        void setInfo(List<WhitelistItem> wl) { 
 	        	List<String> list = new ArrayList<String>();
 	        	for (WhitelistItem entries : wl) {

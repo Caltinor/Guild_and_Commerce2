@@ -57,8 +57,8 @@ public class Config {
 		COMMON_BUILDER.pop();
 		
 		SERVER_BUILDER.comment("Server Settings").push(CATEGORY_SERVER);	
-		setupBlockConfig_DB(COMMON_BUILDER);
-		setupBlockMisc(COMMON_BUILDER);
+		setupBlockConfig_DB(SERVER_BUILDER);
+		setupBlockMisc(SERVER_BUILDER);
 		SERVER_BUILDER.pop();
 		
 		CLIENT_CONFIG = CLIENT_BUILDER.build();

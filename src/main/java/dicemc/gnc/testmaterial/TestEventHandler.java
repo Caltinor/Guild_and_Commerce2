@@ -5,13 +5,9 @@ import java.util.Map;
 import java.util.UUID;
 
 import dicemc.gnc.GnC;
-import dicemc.gnc.land.ChunkData;
 import dicemc.gnc.land.WhitelistItem;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.util.math.ChunkPos;
-import net.minecraft.util.text.StringTextComponent;
-import net.minecraftforge.event.entity.EntityEvent.EnteringChunk;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -26,7 +22,7 @@ public class TestEventHandler {
 		dbConn = new MySQLCon();
 	}*/
 	
-	@SubscribeEvent
+	/*@SubscribeEvent
 	public static void onChunkEnterEvent(EnteringChunk event) {
 		if (event.getEntity() instanceof PlayerEntity && !event.getEntity().world.isRemote()) {
 			int oldX = event.getOldChunkX();
@@ -34,11 +30,11 @@ public class TestEventHandler {
 			int newX = event.getNewChunkX();
 			int newZ = event.getNewChunkZ();
 			if (oldX != newX || oldZ != newZ) {
-				ChunkData ref = GnC.ckMgr.getChunk(new ChunkPos(newX, newZ));
+				ChunkData ref = GnC.ckMgr.getChunk(new ChunkPos(newX, newZ), event.getEntity().getEntityWorld().func_234923_W_());
 				event.getEntity().sendMessage(new StringTextComponent("Entering: " +ref.pos.toString() + " $"+String.valueOf(ref.price)), event.getEntity().getUniqueID());
 			}
 		}
-	}
+	}*/
 	
 	@SubscribeEvent
 	public static void onRightClick(PlayerInteractEvent.RightClickBlock event) {
@@ -46,10 +42,13 @@ public class TestEventHandler {
 			ChunkPos ck = event.getWorld().getChunk(event.getPos()).getPos();
 			WhitelistItem wlItem = new WhitelistItem(event.getWorld().getBlockState(event.getPos()).getBlock().getRegistryName().getPath());
 			Map<String, String> vals = new HashMap<String, String>();
-			vals.put("price", String.valueOf(GnC.ckMgr.getChunk(ck).price += 10));
+			vals.put("price", String.valueOf(GnC.ckMgr.getChunk(ck, event.getEntity().getEntityWorld().func_234923_W_()).price += 10));
 			vals.put("player", UUID.randomUUID().toString()+"Test Player");
 			vals.put("whitelist", wlItem.toNBT().toString());
-			System.out.println(GnC.ckMgr.updateChunk(ck, vals));
+			System.out.println(GnC.ckMgr.updateChunk(ck, vals, event.getEntity().getEntityWorld().func_234923_W_()));
+			if (event.getEntity().isCrouching() && event.getEntity() instanceof PlayerEntity) {
+				GnC.aMgr.changeBalance(event.getEntity().getUniqueID(), 1000);
+			}
 		}
 	}
 	
@@ -61,7 +60,7 @@ public class TestEventHandler {
 			wlItem.setCanBreak(true);
 			Map<String, String> vals = new HashMap<String, String>();
 			vals.put("whitelist", wlItem.toNBT().toString());
-			System.out.println(GnC.ckMgr.updateChunk(ck, vals));
+			System.out.println(GnC.ckMgr.updateChunk(ck, vals, event.getEntity().getEntityWorld().func_234923_W_()));
 		}
 	}
 }

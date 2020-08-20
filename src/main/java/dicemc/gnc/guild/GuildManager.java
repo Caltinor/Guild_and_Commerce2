@@ -4,9 +4,11 @@ import java.util.UUID;
 
 import javax.annotation.Nullable;
 
+import dicemc.gnc.GnC;
 import dicemc.gnc.guild.Guild.permKey;
-
+import dicemc.gnc.setup.Config;
 import java.util.Map;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
@@ -27,7 +29,7 @@ public class GuildManager {
     	UUID id = unrepeatedUUIDs();
     	gmap.put(id, new Guild(name, id));
     	for (permKey perms : permKey.values()) {addPermission(id, perms, 0);}
-    	return "Guild Created";
+    	return "Guild "+name+" Created";
     }
     
     public UUID unrepeatedUUIDs() {
@@ -250,4 +252,38 @@ public class GuildManager {
     *@param guildID the id of the guild being queried.
     */
     public Map<permKey, Integer> getPermissions(UUID guildID) {return gmap.get(guildID).permissions;}
+
+    //GAME LOGIC SECTION
+    public String joinGuild(UUID guildID, UUID playerID) {
+    	addMember(guildID, playerID, getBottomRank(guildID));
+    	return "You have Joined "+gmap.get(guildID).name;
+    }
+    
+    public String createNewGuild(String name, UUID playerID) {
+    	GnC.aMgr.changeBalance(playerID, -1 * Config.GUILD_CREATE_COST.get());
+    	createGuild(name);
+    	addMember(getGuildByName(name).guildID, playerID, 0);
+    	return "Guild "+name+" Created";
+    }
+    
+    public String rejectInvite(UUID guildID, UUID playerID) {
+    	gmap.get(guildID).members.remove(playerID);
+    	return "Rejected invite from "+gmap.get(guildID).name;
+    }
+    
+    public List<String> getInvitedGuilds(UUID playerID) {
+    	List<String> list = new ArrayList<String>();
+    	for (Map.Entry<UUID, Guild> entry : gmap.entrySet()) {
+    		if (entry.getValue().members.getOrDefault(playerID, -2) == -1) list.add(entry.getValue().name);
+    	}
+    	return list;
+    }
+    
+    public List<String> getOpenGuilds(UUID playerID) {
+    	List<String> list = new ArrayList<String>();
+    	for (Map.Entry<UUID, Guild> entry : gmap.entrySet()) {
+    		if (entry.getValue().open) list.add(entry.getValue().name);
+    	}
+    	return list;
+    }
 }

@@ -33,7 +33,6 @@ public class DatabaseManager {
 			System.out.println("DB Connection Successful");
 		} catch (SQLException e) {e.printStackTrace();}	
 		for (Map.Entry<String, String> entry : td.tableDef.entrySet()) {
-			//TODO add a check in table definitions for whether a table should be checked on DB1 or DB2
 			confirmTable(con, entry);
 		}
 	}
@@ -61,4 +60,6 @@ public class DatabaseManager {
 		try {return stmt.executeUpdate(sqlSTR);} catch (SQLException e) {e.getStackTrace();}
 		return 0;
 	}
+	
+	public void migrateWSDtoDB() {}
 }

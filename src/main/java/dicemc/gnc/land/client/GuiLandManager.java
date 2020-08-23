@@ -1,6 +1,7 @@
 package dicemc.gnc.land.client;
 
 import java.awt.Color;
+import java.sql.Timestamp;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -262,8 +263,6 @@ public class GuiLandManager extends Screen{
 	public boolean mouseClicked(double mouseX, double mouseY, int mouseButton) {
 		super.mouseClicked(mouseX, mouseY, mouseButton);
 		if (mouseX > (double)mapX+4d && mouseX <= (double)mapX+(double)d-4d && mouseY > (double)mapY+4d && mouseY < (double)mapY+(double)d-4d) {
-			System.out.println(mouseX);
-			System.out.println(d);
 			int ckX = (center.x-5)+(int)Math.floor(((mouseX - (double)mapX-4d)/((d-8)/11)));
 			int ckZ = (center.z-5)+(int)Math.floor(((mouseY - (double)mapY-4d)/((d-8)/11)));
 			selectedCK = new ChunkPos(ckX, ckZ);
@@ -298,6 +297,8 @@ public class GuiLandManager extends Screen{
 			this.font.func_238422_b_(mStack, new StringTextComponent(TextFormatting.BLACK+ownerText), abandonButton.x, abandonButton.y + abandonButton.getHeight() + 10, 16777215);
 			this.font.func_238422_b_(mStack, new StringTextComponent(TextFormatting.BLACK+"Outpost: "+(ckData.get(selectedCK).data.isOutpost ? "Yes" : "No")), abandonButton.x, abandonButton.y + abandonButton.getHeight() + 25, 16777215);
 			this.font.func_238422_b_(mStack, new StringTextComponent(TextFormatting.BLACK+"Whitelist Type: "+ whitelistType()), abandonButton.x, abandonButton.y + abandonButton.getHeight() + 40, 16777215);
+			if (!ckData.get(selectedCK).data.renter.equals(GnC.NIL))
+				this.font.func_238422_b_(mStack, new StringTextComponent(TextFormatting.BLUE+"Rented Until ["+String.valueOf(new Timestamp(ckData.get(selectedCK).data.rentEnd)+"]")), abandonButton.x, abandonButton.y + abandonButton.getHeight() + 55, 16777215);
 		}
 		if (!chunkView) {
 			this.font.func_238422_b_(mStack, new StringTextComponent(TextFormatting.BLACK+"Min Rank:"), publicToggleButton.x + publicToggleButton.getWidth() + 3, publicToggleButton.y, 16777215);
@@ -437,24 +438,24 @@ public class GuiLandManager extends Screen{
 	}
 	
 	private Map<ChunkPos, Integer> generateMapColors() {
-		System.out.println("Color Mapping Start");
 		Map<ChunkPos, Integer> map = new HashMap<ChunkPos, Integer>();
 		for (Map.Entry<ChunkPos, ChunkSummary> entry : ckData.entrySet()) {
 			int color = 0x00000000;
-			map.put(entry.getKey(), color);
-			if (entry.getValue().data.owner.equals(GnC.NIL) && entry.getValue().data.renter.equals(GnC.NIL)) continue;
-			if (!entry.getValue().data.owner.equals(GnC.NIL) || !entry.getValue().data.renter.equals(GnC.NIL)) {
-				System.out.println(entry.getKey().toString());
+			if (entry.getValue().data.owner.equals(GnC.NIL) && entry.getValue().data.renter.equals(GnC.NIL)) { map.put(entry.getKey(), color); }
+			else if (!entry.getValue().data.owner.equals(GnC.NIL) || !entry.getValue().data.renter.equals(GnC.NIL)) {
+				boolean existing = false;
 				for (Map.Entry<ChunkPos, Integer> ent : map.entrySet()) {
-					if (ckData.get(ent.getKey()).data.owner.equals(entry.getValue().data.owner) || ckData.get(ent.getKey()).data.renter.equals(entry.getValue().data.renter)) {
+					if (ckData.get(ent.getKey()).data.owner.equals(entry.getValue().data.owner) && ckData.get(ent.getKey()).data.renter.equals(entry.getValue().data.renter)) {
 						color = ent.getValue();
 						map.put(entry.getKey(), color);
+						existing = true;
+						break;
 					}
-					else {
-						Random rnd = new Random();
-						color = 180 << 24 | rnd.nextInt(255) << 16 | rnd.nextInt(255) << 8 | rnd.nextInt(255);
-						map.put(entry.getKey(), color);
-					}
+				}
+				if (!existing) {
+					Random rnd = new Random();
+					color = 180 << 24 | rnd.nextInt(255) << 16 | rnd.nextInt(255) << 8 | rnd.nextInt(255);
+					map.put(entry.getKey(), color);
 				}
 			}
 		}

@@ -7,6 +7,7 @@ import dicemc.gnc.datastorage.database.DatabaseManager;
 import dicemc.gnc.datastorage.wsd.MarketWSD;
 import dicemc.gnc.datastorage.wsd.WorldWSD;
 import dicemc.gnc.guild.GuildManager;
+import dicemc.gnc.guild.commands.GuildCommandRoot;
 import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -33,5 +34,6 @@ public class CommonSetup {
 	@SubscribeEvent
 	public static void onCommandRegister(RegisterCommandsEvent event) {
 		AccountCommandRoot.register(event.getDispatcher());
+		GuildCommandRoot.register(event.getDispatcher());
 	}
 }

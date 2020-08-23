@@ -6,6 +6,7 @@ import java.util.function.Supplier;
 
 import dicemc.gnc.GnC;
 import dicemc.gnc.account.AccountManager;
+import dicemc.gnc.common.PacketGuiRequest;
 import dicemc.gnc.setup.Networking;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.util.text.StringTextComponent;
@@ -16,7 +17,11 @@ public class PacketNoGuildDataToServer {
 	private final String str;
 	
 	public enum PkType {
-		JOIN((packet, ctx) -> GnC.gMgr.joinGuild(GnC.gMgr.getGuildByName(packet.str).guildID, ctx.get().getSender().getUniqueID())),
+		JOIN((packet, ctx) -> {
+			String resp = GnC.gMgr.joinGuild(GnC.gMgr.getGuildByName(packet.str).guildID, ctx.get().getSender().getUniqueID());
+			Networking.sendToServer(new PacketGuiRequest(PacketGuiRequest.gui.GUILD));
+			return resp;
+		}),
 		REJECT((packet, ctx) -> {
 			String resp = GnC.gMgr.rejectInvite(GnC.gMgr.getGuildByName(packet.str).guildID, ctx.get().getSender().getUniqueID());
 			double balP = GnC.aMgr.getBalance(ctx.get().getSender().getUniqueID());

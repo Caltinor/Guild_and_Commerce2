@@ -25,14 +25,15 @@ public class AccountManager {
     *
     *@param ID guild IDs should be Integer.toString() and player IDs should be UUID.toString()
     */
-    public String accountExists(UUID ID) {
+    public String accountExists(UUID ID, boolean isPlayer) {
     	String str = "";
     	if (Config.MARKET_USE_DB.get()) {
     		//TODO add DB logic
     	}
     	else {
     		if (MarketWSD.get(world).getAccounts().containsKey(ID)) str = "Account Exists for "+ID.toString();
-    		else str = addAccount(ID, Config.STARTING_FUNDS.get());
+    		else if (isPlayer) str = addAccount(ID, Config.STARTING_FUNDS.get());
+    		else if (!isPlayer) str = addAccount(ID, Config.GUILD_STARTING_FUNDS.get());
     	}
     	return str;
     }

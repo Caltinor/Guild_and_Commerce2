@@ -12,7 +12,7 @@ public class AccountEvents {
 	@SubscribeEvent
 	public static void onPlayerLogin(PlayerLoggedInEvent event) {
 		if (event.getEntity() instanceof PlayerEntity) {
-			System.out.println(GnC.aMgr.accountExists(event.getEntity().getUniqueID()));
+			System.out.println(GnC.aMgr.accountExists(event.getEntity().getUniqueID(), true));
 		}
 	}
 }

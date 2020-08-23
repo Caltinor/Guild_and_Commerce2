@@ -24,7 +24,7 @@ import dicemc.gnc.setup.Config;
 public class GnC {
 	public static final String MOD_ID = "gnc";
 	public static final UUID NIL = UUID.fromString("00000000-0000-0000-0000-000000000000");
-	public static Map<RegistryKey<World>, ChunkManager> ckMgr = new HashMap<RegistryKey<World>, ChunkManager>();
+	public static Map<RegistryKey<World>, ChunkManager> wldMgr = new HashMap<RegistryKey<World>, ChunkManager>();
 	public static DatabaseManager DBMgr;
 	public static GuildManager gMgr;
 	public static AccountManager aMgr;

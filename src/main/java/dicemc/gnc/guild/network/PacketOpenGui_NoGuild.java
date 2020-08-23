@@ -1,5 +1,6 @@
 package dicemc.gnc.guild.network;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
 
@@ -9,7 +10,8 @@ import net.minecraftforge.fml.network.NetworkEvent;
 
 public class PacketOpenGui_NoGuild {
 	private final double balP;
-	private List<String> invites, openGuilds;
+	private List<String> invites = new ArrayList<String>();
+	private List<String> openGuilds = new ArrayList<String>();
 	
 	public PacketOpenGui_NoGuild(PacketBuffer buf) {
 		balP = buf.readDouble();

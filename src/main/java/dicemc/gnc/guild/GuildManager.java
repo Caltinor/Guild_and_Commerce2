@@ -5,12 +5,14 @@ import java.util.UUID;
 import javax.annotation.Nullable;
 
 import dicemc.gnc.GnC;
+import dicemc.gnc.common.PacketGuiRequest;
 import dicemc.gnc.datastorage.wsd.MarketWSD;
 import dicemc.gnc.datastorage.wsd.WorldWSD;
 import dicemc.gnc.guild.Guild.permKey;
 import dicemc.gnc.land.ChunkData;
 import dicemc.gnc.land.ChunkManager;
 import dicemc.gnc.setup.Config;
+import dicemc.gnc.setup.Networking;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.RegistryKey;
@@ -25,7 +27,6 @@ import java.util.HashMap;
 import java.util.List;
 
 public class GuildManager {
-	private Map<UUID, Guild> gmap = new HashMap<UUID, Guild>();
 	private MinecraftServer server;
 	private DecimalFormat df = new DecimalFormat("###,###,###,##0.00");
 	
@@ -43,14 +44,15 @@ public class GuildManager {
     */
     public String createGuild(String name, boolean isAdmin) {
     	UUID id = unrepeatedUUIDs();
-    	gmap.put(id, new Guild(name, id, isAdmin));
+    	WorldWSD.get(server.getWorld(World.field_234918_g_)).getGuilds().put(id, new Guild(name, id, isAdmin));
+    	GnC.aMgr.accountExists(id, false);
     	for (permKey perms : permKey.values()) {addPermission(id, perms, 0);}
     	return "Guild "+name+" Created";
     }
     
     public UUID unrepeatedUUIDs() {
     	UUID out = UUID.randomUUID();
-    	if (gmap.get(out) == null) return out;
+    	if (WorldWSD.get(server.getWorld(World.field_234918_g_)).getGuilds().get(out) == null) return out;
     	else return unrepeatedUUIDs();
     }
     
@@ -77,9 +79,11 @@ public class GuildManager {
     *@param rank the rank to be assigned.  -1 is reserved for invited players while values > 0 are ranks.
     */
     public String updateMember(UUID guildID, UUID playerID, int rank) {
-    	if (gmap.get(guildID).permLevels.getOrDefault(rank, "N/A").equalsIgnoreCase("N/A")) return "Rank Locked";
-    	if (gmap.get(guildID).members.getOrDefault(playerID, -2) == -2) return "Member Not Found";
-    	gmap.get(guildID).members.put(playerID, rank);
+    	if (WorldWSD.get(server.getWorld(World.field_234918_g_)).getGuilds().get(guildID).permLevels.getOrDefault(rank, "N/A").equalsIgnoreCase("N/A")) return "Rank Locked";
+    	else {
+    		WorldWSD.get(server.getWorld(World.field_234918_g_)).getGuilds().get(guildID).members.put(playerID, rank);
+    		WorldWSD.get(server.getWorld(World.field_234918_g_)).markDirty();
+    	}
     	return "Member Rank Updated";
     }
     
@@ -92,7 +96,10 @@ public class GuildManager {
     *@param playerID the player's UniqueID
     */
     public String removeMember(UUID guildID, UUID playerID) {
-    	if (gmap.get(guildID).members.remove(playerID) != null) return "Player Removed";
+    	if (WorldWSD.get(server.getWorld(World.field_234918_g_)).getGuilds().get(guildID).members.remove(playerID) != null) {
+    		WorldWSD.get(server.getWorld(World.field_234918_g_)).markDirty();
+    		return "Player Removed";
+    	}    	
     	else return "Player Not Found In Guild";
     }
     
@@ -103,7 +110,7 @@ public class GuildManager {
     *
     *@param guildID the guild's unique ID
     */
-    public Map<UUID, Integer> getMembers(UUID guildID) {return gmap.get(guildID).members;}
+    public Map<UUID, Integer> getMembers(UUID guildID) {return WorldWSD.get(server.getWorld(World.field_234918_g_)).getGuilds().get(guildID).members;}
     
     /**
     *gets the record for the given guild ID and returns it as a Guild object
@@ -112,7 +119,7 @@ public class GuildManager {
     *
     *@param guildID the guild's unique ID
     */
-    public Guild getGuildByID(UUID guildID) {return gmap.get(guildID);}
+    public Guild getGuildByID(UUID guildID) {return WorldWSD.get(server.getWorld(World.field_234918_g_)).getGuilds().get(guildID);}
     
     /**
     *gets the record for the given guild by Name and returns it as a Guild object
@@ -123,9 +130,9 @@ public class GuildManager {
     */
     @Nullable
     public Guild getGuildByName(String guildName) {
-    	if (gmap.size() > 0) {
-    		for (Map.Entry<UUID, Guild> entry : gmap.entrySet()) {
-    			if (entry.getValue().name.equalsIgnoreCase(guildName)) return entry.getValue();
+    	if (WorldWSD.get(server.getWorld(World.field_234918_g_)).getGuilds().size() > 0) {
+    		for (Map.Entry<UUID, Guild> entry : WorldWSD.get(server.getWorld(World.field_234918_g_)).getGuilds().entrySet()) {
+    			if (entry.getValue().name.equalsIgnoreCase(guildName)) {System.out.println("Name Recognized"); return entry.getValue();}
     		}
     	}
     	return null;
@@ -141,9 +148,10 @@ public class GuildManager {
     */
     @Nullable
     public Guild getGuildByMember(UUID playerID) {
-    	if (gmap.size() > 0) {
-    		for (Map.Entry<UUID, Guild> entry : gmap.entrySet()) {
-    			if (entry.getValue().members.get(playerID) != null) return entry.getValue();
+    	if (WorldWSD.get(server.getWorld(World.field_234918_g_)).getGuilds().size() > 0) {
+    		for (Map.Entry<UUID, Guild> entry : WorldWSD.get(server.getWorld(World.field_234918_g_)).getGuilds().entrySet()) {
+    			System.out.println(entry.getValue().members.size());
+    			if (entry.getValue().members.getOrDefault(playerID, -1) >= 0) {System.out.println("Member Recognized"); return entry.getValue();}
     		}
     	}
     	return null;
@@ -159,7 +167,7 @@ public class GuildManager {
     *@param guild the guild object whose ID is being reference and whose values are being passed to the SQL builder
     */
     public String setGuild(Guild guild, List<guildUpdates> changes) {
-    	Guild ogg = gmap.get(guild.guildID);
+    	Guild ogg = WorldWSD.get(server.getWorld(World.field_234918_g_)).getGuilds().get(guild.guildID);
     	for (int i = 0; i < changes.size(); i++) {
     		switch (changes.get(i)) {
     		case NAME: { ogg.name = guild.name;	break; }
@@ -171,7 +179,8 @@ public class GuildManager {
     		default:
     		}
     	}
-    	gmap.put(ogg.guildID, ogg);
+    	WorldWSD.get(server.getWorld(World.field_234918_g_)).getGuilds().put(ogg.guildID, ogg);
+    	WorldWSD.get(server.getWorld(World.field_234918_g_)).markDirty();
     	return "";
     }
     
@@ -190,9 +199,10 @@ public class GuildManager {
     	int highest = 0;
     	while (highest >= 0) {
     		highest++;
-    		if (gmap.get(guildID).permLevels.get(highest) == null) break;
+    		if (WorldWSD.get(server.getWorld(World.field_234918_g_)).getGuilds().get(guildID).permLevels.get(highest) == null) break;
     	}
-    	gmap.get(guildID).permLevels.put(highest, title);
+    	WorldWSD.get(server.getWorld(World.field_234918_g_)).getGuilds().get(guildID).permLevels.put(highest, title);
+    	WorldWSD.get(server.getWorld(World.field_234918_g_)).markDirty();
     	return "Rank Added";
     }
     
@@ -206,8 +216,9 @@ public class GuildManager {
     *@param newTitle the Title to replace the existing one.
     */
     public String setRankTitle(UUID guildID, int rank, String newTitle) {
-    	if (gmap.get(guildID).permLevels.getOrDefault(rank, "N/A").equalsIgnoreCase("N/A")) return "Rank Locked";
-    	gmap.get(guildID).permLevels.put(rank, newTitle);
+    	if (WorldWSD.get(server.getWorld(World.field_234918_g_)).getGuilds().get(guildID).permLevels.getOrDefault(rank, "N/A").equalsIgnoreCase("N/A")) return "Rank Locked";
+    	WorldWSD.get(server.getWorld(World.field_234918_g_)).getGuilds().get(guildID).permLevels.put(rank, newTitle);
+    	WorldWSD.get(server.getWorld(World.field_234918_g_)).markDirty();
     	return "Rank Updated";
     }
     
@@ -216,15 +227,15 @@ public class GuildManager {
     *
     *@param guildID the guild's unique ID
     */
-    public Map<Integer, String> getRanks(UUID guildID) {return gmap.get(guildID).permLevels;}
+    public Map<Integer, String> getRanks(UUID guildID) {return WorldWSD.get(server.getWorld(World.field_234918_g_)).getGuilds().get(guildID).permLevels;}
     
     public int getBottomRank(UUID guildID) {
     	int highest = 0;
     	while (highest >= 0) {
+    		if (WorldWSD.get(server.getWorld(World.field_234918_g_)).getGuilds().get(guildID).permLevels.get(highest) == null) break;
     		highest++;
-    		if (gmap.get(guildID).permLevels.get(highest) == null) break;
     	}
-    	return highest;
+    	return highest-1;
     }
 
     /**
@@ -248,7 +259,8 @@ public class GuildManager {
     *@param value the rank value of the permission. must be >= 0
     */
     public String setPermission(UUID guildID, permKey permTag, int value) {
-    	gmap.get(guildID).permissions.put(permTag, value);
+    	WorldWSD.get(server.getWorld(World.field_234918_g_)).getGuilds().get(guildID).permissions.put(permTag, value);
+    	WorldWSD.get(server.getWorld(World.field_234918_g_)).markDirty();
     	return "Permission Set";
     }
     
@@ -258,7 +270,7 @@ public class GuildManager {
     *@param guildID the id of the guild.
     *@param permTag the tag for the permission queried
     */
-    public int getPermission(UUID guildID, permKey permTag) { return gmap.get(guildID).permissions.getOrDefault(permTag, -2); }
+    public int getPermission(UUID guildID, permKey permTag) { return WorldWSD.get(server.getWorld(World.field_234918_g_)).getGuilds().get(guildID).permissions.getOrDefault(permTag, -2); }
     
     /**
     *gets all permissions and values for a specific guild
@@ -267,29 +279,32 @@ public class GuildManager {
     *
     *@param guildID the id of the guild being queried.
     */
-    public Map<permKey, Integer> getPermissions(UUID guildID) {return gmap.get(guildID).permissions;}
+    public Map<permKey, Integer> getPermissions(UUID guildID) {return WorldWSD.get(server.getWorld(World.field_234918_g_)).getGuilds().get(guildID).permissions;}
 
     //GAME LOGIC SECTION
     public String joinGuild(UUID guildID, UUID playerID) {
-    	addMember(guildID, playerID, getBottomRank(guildID));
-    	return "You have Joined "+gmap.get(guildID).name;
+    	System.out.println(getBottomRank(guildID));
+    	System.out.println(addMember(guildID, playerID, getBottomRank(guildID)));
+    	return "You have Joined "+WorldWSD.get(server.getWorld(World.field_234918_g_)).getGuilds().get(guildID).name;
     }
     
     public String createNewGuild(String name, UUID playerID, boolean isAdmin) {
     	GnC.aMgr.changeBalance(playerID, -1 * Config.GUILD_CREATE_COST.get());
     	createGuild(name, isAdmin);
     	addMember(getGuildByName(name).guildID, playerID, 0);
+    	Networking.sendToServer(new PacketGuiRequest(PacketGuiRequest.gui.GUILD));
     	return "Guild "+name+" Created";
     }
     
     public String rejectInvite(UUID guildID, UUID playerID) {
-    	gmap.get(guildID).members.remove(playerID);
-    	return "Rejected invite from "+gmap.get(guildID).name;
+    	WorldWSD.get(server.getWorld(World.field_234918_g_)).getGuilds().get(guildID).members.remove(playerID);
+    	WorldWSD.get(server.getWorld(World.field_234918_g_)).markDirty();
+    	return "Rejected invite from "+WorldWSD.get(server.getWorld(World.field_234918_g_)).getGuilds().get(guildID).name;
     }
     
     public List<String> getInvitedGuilds(UUID playerID) {
     	List<String> list = new ArrayList<String>();
-    	for (Map.Entry<UUID, Guild> entry : gmap.entrySet()) {
+    	for (Map.Entry<UUID, Guild> entry : WorldWSD.get(server.getWorld(World.field_234918_g_)).getGuilds().entrySet()) {
     		if (entry.getValue().members.getOrDefault(playerID, -2) == -1) list.add(entry.getValue().name);
     	}
     	return list;
@@ -297,15 +312,15 @@ public class GuildManager {
     
     public List<String> getOpenGuilds(UUID playerID) {
     	List<String> list = new ArrayList<String>();
-    	for (Map.Entry<UUID, Guild> entry : gmap.entrySet()) {
+    	for (Map.Entry<UUID, Guild> entry : WorldWSD.get(server.getWorld(World.field_234918_g_)).getGuilds().entrySet()) {
     		if (entry.getValue().open) list.add(entry.getValue().name);
     	}
     	return list;
     }
     
     public void applyTaxes() {
-    	if (gmap.size() == 0) return;
-    	for (Map.Entry<UUID, Guild> guilds : gmap.entrySet()) {
+    	if (WorldWSD.get(server.getWorld(World.field_234918_g_)).getGuilds().size() == 0) return;
+    	for (Map.Entry<UUID, Guild> guilds : WorldWSD.get(server.getWorld(World.field_234918_g_)).getGuilds().entrySet()) {
     		//1st apply member taxes
     		for (Map.Entry<UUID, Integer> mbrs : guilds.getValue().members.entrySet()) {
     			if (mbrs.getValue() >= 0) {
@@ -316,7 +331,7 @@ public class GuildManager {
     		}
     		//2nd apply guild taxes
     		double debt = MarketWSD.get(server.getWorld(World.field_234918_g_)).getDebt().getOrDefault(guilds.getKey(), 0d);
-    		double taxes = taxableWorth(guilds.getKey());
+    		double taxes = taxableWorth(guilds.getKey()) * Config.GLOBAL_TAX_RATE.get();
     		double balG = GnC.aMgr.getBalance(guilds.getKey());
 			if (taxes >= balG) {
 				taxes -= balG;
@@ -345,7 +360,7 @@ public class GuildManager {
     public void printTaxInfo() {
     	Map<UUID, Double> debt = MarketWSD.get(server.getWorld(World.field_234918_g_)).getDebt();
     	for (Map.Entry<UUID, Double> map : debt.entrySet()) {
-    		String notice = "Debt for: "+ gmap.get(map.getKey()).name +" = $"+ df.format(map.getValue());
+    		String notice = "Debt for: "+ WorldWSD.get(server.getWorld(World.field_234918_g_)).getGuilds().get(map.getKey()).name +" = $"+ df.format(map.getValue());
     		DecimalFormat pf = new DecimalFormat("#0.00");
     		double percent = map.getValue() / (guildWorth(map.getKey())/2);
     		String detail = "Percent to Bankruptcy: "+pf.format(percent)+"%";
@@ -358,7 +373,7 @@ public class GuildManager {
     
     public double taxableWorth(UUID guildID) {
     	int memberCount = 0;
-    	for (Map.Entry<UUID, Integer> mbrs : gmap.get(guildID).members.entrySet()) {if (mbrs.getValue() >= 0) memberCount++;}
+    	for (Map.Entry<UUID, Integer> mbrs : WorldWSD.get(server.getWorld(World.field_234918_g_)).getGuilds().get(guildID).members.entrySet()) {if (mbrs.getValue() >= 0) memberCount++;}
     	int taxableLand = landCoreCount(guildID) - (memberCount*Config.CHUNKS_PER_MEMBER.get());
     	taxableLand = taxableLand > 0 ? taxableLand + landOutpostCount(guildID) : landOutpostCount(guildID);
     	double proportion = taxableLand == 0 ? 0 : taxableLand/(landCoreCount(guildID)+landOutpostCount(guildID));
@@ -367,7 +382,7 @@ public class GuildManager {
     
     public double guildWorth(UUID guildID) {
     	double totalValue = 0;
-    	for (Map.Entry<RegistryKey<World>, ChunkManager> wld : GnC.ckMgr.entrySet()) {
+    	for (Map.Entry<RegistryKey<World>, ChunkManager> wld : GnC.wldMgr.entrySet()) {
 	    	for (Map.Entry<ChunkPos, ChunkData> map : WorldWSD.get(server.getWorld(wld.getKey())).getChunks().entrySet()) {
 	    		if (map.getValue().owner.equals(guildID)) totalValue += map.getValue().price;
 	    	}
@@ -375,9 +390,9 @@ public class GuildManager {
     	return totalValue;
     }
     
-    private int landCoreCount(UUID guildID) {
+    public int landCoreCount(UUID guildID) {
     	int count = 0;
-    	for (Map.Entry<RegistryKey<World>, ChunkManager> wld : GnC.ckMgr.entrySet()) {
+    	for (Map.Entry<RegistryKey<World>, ChunkManager> wld : GnC.wldMgr.entrySet()) {
 	    	for (Map.Entry<ChunkPos, ChunkData> map : WorldWSD.get(server.getWorld(wld.getKey())).getChunks().entrySet()) {
 	    		if (map.getValue().owner.equals(guildID) && !map.getValue().isOutpost) count++;
 	    	}
@@ -385,9 +400,9 @@ public class GuildManager {
     	return count;
     }
     
-    private int landOutpostCount(UUID guildID) {
+    public int landOutpostCount(UUID guildID) {
     	int count = 0;
-    	for (Map.Entry<RegistryKey<World>, ChunkManager> wld : GnC.ckMgr.entrySet()) {
+    	for (Map.Entry<RegistryKey<World>, ChunkManager> wld : GnC.wldMgr.entrySet()) {
 	    	for (Map.Entry<ChunkPos, ChunkData> map : WorldWSD.get(server.getWorld(wld.getKey())).getChunks().entrySet()) {
 	    		if (map.getValue().owner.equals(guildID) && map.getValue().isOutpost) count++;
 	    	}

@@ -20,7 +20,8 @@ public class ChunkEventHandler {
 	public static void onChunkLoad(ChunkEvent.Load event) {		
 		if (!event.getWorld().isRemote()) {
 			ServerWorld world = (ServerWorld) event.getWorld();
-			GnC.ckMgr.get(world.func_234923_W_()).loadChunkData(event.getChunk().getPos(), world);
+			if (GnC.wldMgr.get(world.func_234923_W_()) == null) return;
+			GnC.wldMgr.get(world.func_234923_W_()).loadChunkData(event.getChunk().getPos(), world);
 		}
 	}
 	
@@ -28,9 +29,10 @@ public class ChunkEventHandler {
 	public static void onWorldLoad(WorldEvent.Load event) {
 		if (!event.getWorld().isRemote()) {
 			ServerWorld world = (ServerWorld) event.getWorld();
-			if (GnC.ckMgr.get(world.func_234923_W_()) == null) {
-				GnC.ckMgr.put(world.func_234923_W_(), new ChunkManager());
-				GnC.ckMgr.get(world.func_234923_W_()).setServer(world.getServer());
+			if (GnC.wldMgr.get(world.func_234923_W_()) == null) {
+				GnC.wldMgr.put(world.func_234923_W_(), new ChunkManager());
+				GnC.wldMgr.get(world.func_234923_W_()).setServer(world.getServer());
+				System.out.println("Added Dimension: "+world.func_234923_W_().toString());
 			}
 		}
 	}
@@ -39,7 +41,7 @@ public class ChunkEventHandler {
 	public static void onChunkUnload(WorldEvent.Save event) {
 		if (!event.getWorld().isRemote()) {
 			ServerWorld world = (ServerWorld) event.getWorld();
-			GnC.ckMgr.get(world.func_234923_W_()).saveChunkData(world);
+			GnC.wldMgr.get(world.func_234923_W_()).saveChunkData(world);
 		}
 	}
 	
@@ -51,8 +53,8 @@ public class ChunkEventHandler {
 			int newX = event.getNewChunkX();
 			int newZ = event.getNewChunkZ();
 			if (oldX != newX || oldZ != newZ) {
-				ChunkData oref = GnC.ckMgr.get(event.getEntity().getEntityWorld().func_234923_W_()).getChunk(new ChunkPos(oldX, oldZ));
-				ChunkData nref = GnC.ckMgr.get(event.getEntity().getEntityWorld().func_234923_W_()).getChunk(new ChunkPos(newX, newZ));
+				ChunkData oref = GnC.wldMgr.get(event.getEntity().getEntityWorld().func_234923_W_()).getChunk(new ChunkPos(oldX, oldZ));
+				ChunkData nref = GnC.wldMgr.get(event.getEntity().getEntityWorld().func_234923_W_()).getChunk(new ChunkPos(newX, newZ));
 				if (oref == null) return;
 				if (!oref.owner.equals(nref.owner) || (nref.owner.equals(GnC.NIL) && !oref.renter.equals(nref.renter))) {
 					String msg = "Now Entering: " ;
@@ -60,7 +62,7 @@ public class ChunkEventHandler {
 						if (nref.renter.equals(GnC.NIL)) msg += "Unowned Territory";
 						else msg += "Temporary Claim of: "+ event.getEntity().getServer().getPlayerProfileCache().getProfileByUUID(nref.renter).getName();
 					}
-					else msg += "Territory of Guild: "+ GnC.gMgr.getGuildByID(GnC.ckMgr.get(event.getEntity().getEntityWorld().func_234923_W_()).getChunk(new ChunkPos(newX, newZ)).owner).name;	
+					else msg += "Territory of Guild: "+ GnC.gMgr.getGuildByID(GnC.wldMgr.get(event.getEntity().getEntityWorld().func_234923_W_()).getChunk(new ChunkPos(newX, newZ)).owner).name;	
 					event.getEntity().sendMessage(new StringTextComponent(msg), event.getEntity().getUniqueID());
 				}
 			}

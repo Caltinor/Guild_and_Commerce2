@@ -31,31 +31,31 @@ public class PacketChunkDataToServer {
 	private String str = "";
 		
 	public enum PkType {
-		TEMPCLAIM((packet, ctx) -> GnC.ckMgr.get(ctx.get().getSender().getEntityWorld().func_234923_W_()).tempClaim(packet.pos, packet.id)), 
-		GUILDCLAIM((packet, ctx) -> GnC.ckMgr.get(ctx.get().getSender().getEntityWorld().func_234923_W_()).guildClaim(packet.pos, packet.id)), 
+		TEMPCLAIM((packet, ctx) -> GnC.wldMgr.get(ctx.get().getSender().getEntityWorld().func_234923_W_()).tempClaim(packet.pos, packet.id)), 
+		GUILDCLAIM((packet, ctx) -> GnC.wldMgr.get(ctx.get().getSender().getEntityWorld().func_234923_W_()).guildClaim(packet.pos, packet.id)), 
 		ABANDON((packet, ctx) -> ""), 
-		EXTEND((packet, ctx) -> GnC.ckMgr.get(ctx.get().getSender().getEntityWorld().func_234923_W_()).extendClaim(packet.pos, packet.id)), 
+		EXTEND((packet, ctx) -> GnC.wldMgr.get(ctx.get().getSender().getEntityWorld().func_234923_W_()).extendClaim(packet.pos, packet.id)), 
 		SELL((packet, ctx) -> ""), 
 		UPDATESUB((packet, ctx) -> ""), 
-		PUBLIC((packet, ctx) -> GnC.ckMgr.get(ctx.get().getSender().getEntityWorld().func_234923_W_()).publicToggle(packet.pos, packet.igr == 1)), 
+		PUBLIC((packet, ctx) -> GnC.wldMgr.get(ctx.get().getSender().getEntityWorld().func_234923_W_()).publicToggle(packet.pos, packet.igr == 1)), 
 		MINRANK((packet, ctx) -> ""), 
 		DISABLESUB((packet, ctx) -> ""), 
 		BREAK((packet, ctx) -> {
 			CompoundNBT nbt = new CompoundNBT();
 			try {nbt = JsonToNBT.getTagFromJson(packet.str);} catch (CommandSyntaxException e) {}
-			return GnC.ckMgr.get(ctx.get().getSender().getEntityWorld().func_234923_W_()).updateWhitelistItem(packet.pos, new WhitelistItem(nbt)); 
+			return GnC.wldMgr.get(ctx.get().getSender().getEntityWorld().func_234923_W_()).updateWhitelistItem(packet.pos, new WhitelistItem(nbt)); 
 		}),
 		INTERACT((packet, ctx) -> {
 			CompoundNBT nbt = new CompoundNBT();
 			try {nbt = JsonToNBT.getTagFromJson(packet.str);} catch (CommandSyntaxException e) {}
-			return GnC.ckMgr.get(ctx.get().getSender().getEntityWorld().func_234923_W_()).updateWhitelistItem(packet.pos, new WhitelistItem(nbt)); 
+			return GnC.wldMgr.get(ctx.get().getSender().getEntityWorld().func_234923_W_()).updateWhitelistItem(packet.pos, new WhitelistItem(nbt)); 
 		}),
-		CLEARWL((packet, ctx) -> GnC.ckMgr.get(ctx.get().getSender().getEntityWorld().func_234923_W_()).setWhitelist(packet.pos, new ArrayList<WhitelistItem>())), 
+		CLEARWL((packet, ctx) -> GnC.wldMgr.get(ctx.get().getSender().getEntityWorld().func_234923_W_()).setWhitelist(packet.pos, new ArrayList<WhitelistItem>())), 
 		MEMBER((packet, ctx) -> {
-			Map<UUID, String> map = GnC.ckMgr.get(ctx.get().getSender().getEntityWorld().func_234923_W_()).getPlayers(packet.pos);
-			for (Map.Entry<UUID, String> entry : map.entrySet()) {if (entry.getValue().equalsIgnoreCase(packet.str)) {return GnC.ckMgr.get(ctx.get().getSender().getEntityWorld().func_234923_W_()).removePlayer(packet.pos, entry.getKey());}}
+			Map<UUID, String> map = GnC.wldMgr.get(ctx.get().getSender().getEntityWorld().func_234923_W_()).getPlayers(packet.pos);
+			for (Map.Entry<UUID, String> entry : map.entrySet()) {if (entry.getValue().equalsIgnoreCase(packet.str)) {return GnC.wldMgr.get(ctx.get().getSender().getEntityWorld().func_234923_W_()).removePlayer(packet.pos, entry.getKey());}}
 			UUID player = ctx.get().getSender().getServer().getPlayerProfileCache().getGameProfileForUsername(packet.str).getId();
-			return GnC.ckMgr.get(ctx.get().getSender().getEntityWorld().func_234923_W_()).addPlayer(packet.pos, player);
+			return GnC.wldMgr.get(ctx.get().getSender().getEntityWorld().func_234923_W_()).addPlayer(packet.pos, player);
 		});
 	
 		public final BiFunction<PacketChunkDataToServer, Supplier<NetworkEvent.Context>, String> packetHandler;
@@ -169,7 +169,7 @@ public class PacketChunkDataToServer {
 			for (int x = center.x-6; x <= center.x+6; x++) {
 				for (int z = center.z-6; z <= center.z+6; z++) {
 					ChunkPos pos = new ChunkPos(x, z);
-					chunkData.add(new ChunkSummary(GnC.ckMgr.get(ctx.get().getSender().getEntityWorld().func_234923_W_()).getChunk(pos), ownerName(pos, server, ctx)));
+					chunkData.add(new ChunkSummary(GnC.wldMgr.get(ctx.get().getSender().getEntityWorld().func_234923_W_()).getChunk(pos), ownerName(pos, server, ctx)));
 				}
 			}
 			double balG = gid.equals(GnC.NIL) ? 0.0 : GnC.aMgr.getBalance(gid);
@@ -180,16 +180,16 @@ public class PacketChunkDataToServer {
 	}
 	
 	private String ownerName(ChunkPos pos, ServerWorld server, Supplier<NetworkEvent.Context> ctx) {
-		if (GnC.ckMgr.get(ctx.get().getSender().getEntityWorld().func_234923_W_()).getChunk(pos).owner.equals(GnC.NIL) &&
-				GnC.ckMgr.get(ctx.get().getSender().getEntityWorld().func_234923_W_()).getChunk(pos).renter.equals(GnC.NIL)) {
+		if (GnC.wldMgr.get(ctx.get().getSender().getEntityWorld().func_234923_W_()).getChunk(pos).owner.equals(GnC.NIL) &&
+				GnC.wldMgr.get(ctx.get().getSender().getEntityWorld().func_234923_W_()).getChunk(pos).renter.equals(GnC.NIL)) {
 				return "Unowned";
 			}
-			if (GnC.gMgr.getGuildByID(GnC.ckMgr.get(ctx.get().getSender().getEntityWorld().func_234923_W_()).getChunk(pos).owner) != null) {
-				return GnC.gMgr.getGuildByID(GnC.ckMgr.get(ctx.get().getSender().getEntityWorld().func_234923_W_()).getChunk(pos).owner).name;
+			if (GnC.gMgr.getGuildByID(GnC.wldMgr.get(ctx.get().getSender().getEntityWorld().func_234923_W_()).getChunk(pos).owner) != null) {
+				return GnC.gMgr.getGuildByID(GnC.wldMgr.get(ctx.get().getSender().getEntityWorld().func_234923_W_()).getChunk(pos).owner).name;
 			}
-			if (GnC.ckMgr.get(ctx.get().getSender().getEntityWorld().func_234923_W_()).getChunk(pos).owner.equals(GnC.NIL) &&
-				!GnC.ckMgr.get(ctx.get().getSender().getEntityWorld().func_234923_W_()).getChunk(pos).renter.equals(GnC.NIL)) {
-				return server.getPlayerByUuid(GnC.ckMgr.get(ctx.get().getSender().getEntityWorld().func_234923_W_()).getChunk(pos).renter).getScoreboardName();
+			if (GnC.wldMgr.get(ctx.get().getSender().getEntityWorld().func_234923_W_()).getChunk(pos).owner.equals(GnC.NIL) &&
+				!GnC.wldMgr.get(ctx.get().getSender().getEntityWorld().func_234923_W_()).getChunk(pos).renter.equals(GnC.NIL)) {
+				return server.getPlayerByUuid(GnC.wldMgr.get(ctx.get().getSender().getEntityWorld().func_234923_W_()).getChunk(pos).renter).getScoreboardName();
 			}
 			return "Logical Error";
 	}

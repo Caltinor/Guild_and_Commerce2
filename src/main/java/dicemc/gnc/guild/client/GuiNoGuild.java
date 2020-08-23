@@ -34,7 +34,8 @@ public class GuiNoGuild extends Screen {
 	private InviteListPanel inviteList;
 	//Given Variables
 	private double balP;
-	private List<String> invites, openGuilds;
+	private List<String> invites = new ArrayList<String>();
+	private List<String> openGuilds = new ArrayList<String>();
 	
 	public static void open(double balP, List<String> invites, List<String> openGuilds) {
 		Screen parent = Minecraft.getInstance().currentScreen;
@@ -46,7 +47,12 @@ public class GuiNoGuild extends Screen {
 		screen.updateGui(balP, invites, openGuilds);
 	}
 	
-	protected void updateGui(double balP, List<String> invites, List<String> openGuilds) {}
+	protected void updateGui(double balP, List<String> invites, List<String> openGuilds) {
+		this.balP = balP;
+		this.invites = invites;
+		this.openGuilds = openGuilds;
+		updateVisibility();
+	}
 	
 	protected GuiNoGuild(Screen parentScreen, double balP, List<String> invites, List<String> openGuilds) {
 		super(new StringTextComponent("No Guild Screen"));
@@ -126,9 +132,17 @@ public class GuiNoGuild extends Screen {
 	private void actionBack() {minecraft.displayGuiScreen(parentScreen);}
 	private void actionInviteToggle() {inviteView = true; updateVisibility();}
 	private void actionOpenToggle() {inviteView = false; updateVisibility();}
-	private void actionJoin() {Networking.sendToServer(new PacketNoGuildDataToServer(PacketNoGuildDataToServer.PkType.JOIN, inviteList.getSelected()));}
-	private void actionReject() {Networking.sendToServer(new PacketNoGuildDataToServer(PacketNoGuildDataToServer.PkType.REJECT, inviteList.getSelected()));}
-	private void actionCreate() {Networking.sendToServer(new PacketNoGuildDataToServer(PacketNoGuildDataToServer.PkType.CREATE, nameField.getText()));}
+	private void actionJoin() {
+		if (inviteList.selectedItem >= 0) {
+			Networking.sendToServer(new PacketNoGuildDataToServer(PacketNoGuildDataToServer.PkType.JOIN, inviteList.getSelected()));
+			this.closeScreen();
+		}		
+	}
+	private void actionReject() {if (inviteList.selectedItem >= 0) Networking.sendToServer(new PacketNoGuildDataToServer(PacketNoGuildDataToServer.PkType.REJECT, inviteList.getSelected()));}
+	private void actionCreate() {
+		Networking.sendToServer(new PacketNoGuildDataToServer(PacketNoGuildDataToServer.PkType.CREATE, nameField.getText()));
+		this.closeScreen();
+	}
 	
 	class InviteListPanel extends ScrollPanel {
         private List<ITextProperties> lines = Collections.emptyList();
@@ -152,7 +166,12 @@ public class GuiNoGuild extends Screen {
 
         private List<ITextProperties> resizeContent(List<String> lines) {
             List<ITextProperties> ret = new ArrayList<>();
-            if (lines.size() == 0) {ret.add(new StringTextComponent("")); return ret;}
+            if (lines.size() == 0) {
+            	ITextComponent chat = ForgeHooks.newChatWithLinks("", false);
+                int maxTextLength = this.width - 12;
+            	ret.addAll(font.func_238420_b_().func_238362_b_(chat, maxTextLength, Style.EMPTY)); 
+            	return ret;
+            }
             for (String line : lines) {
                 if (line == null) {
                     ret.add(null);

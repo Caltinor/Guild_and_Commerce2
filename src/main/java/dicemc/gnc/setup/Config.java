@@ -36,6 +36,8 @@ public class Config {
 	public static ForgeConfigSpec.ConfigValue<Double> TEMPCLAIM_RATE;
 	public static ForgeConfigSpec.ConfigValue<Double> LAND_ABANDON_REFUND_RATE;
 	public static ForgeConfigSpec.ConfigValue<Double> GUILD_CREATE_COST;
+	public static ForgeConfigSpec.ConfigValue<Double> GUILD_NAME_CHANGE_COST;
+	public static ForgeConfigSpec.ConfigValue<Double> GUILD_RANK_ADD_COST;
 	public static ForgeConfigSpec.ConfigValue<Double> OUTPOST_CREATE_COST;
 	public static ForgeConfigSpec.ConfigValue<Double> STARTING_FUNDS;
 	public static ForgeConfigSpec.ConfigValue<Double> GUILD_STARTING_FUNDS;
@@ -107,6 +109,10 @@ public class Config {
 				.defineInRange("land_abandon_refund_rate", 0.75, 0, 1D);
 		GUILD_CREATE_COST = builder.comment("The cost to create a new guild.")
 				.defineInRange("guild_create_cost", 2500D, 0, Double.MAX_VALUE);
+		GUILD_NAME_CHANGE_COST = builder.comment("The cost to change a guild's name.")
+				.defineInRange("guild_name_change_cost", 1500D, 0, Double.MAX_VALUE);
+		GUILD_RANK_ADD_COST = builder.comment("The cost modifier to add a new guild rank.")
+				.defineInRange("guild_rank_add_cost", 1000D, 0, Double.MAX_VALUE);
 		OUTPOST_CREATE_COST = builder.comment("The cost to establish a new outpost.")
 				.defineInRange("outpost_create_cost", 2000D, 0, Double.MAX_VALUE);
 		STARTING_FUNDS = builder.comment("The amount of money a new player starts with when first joining the world.")

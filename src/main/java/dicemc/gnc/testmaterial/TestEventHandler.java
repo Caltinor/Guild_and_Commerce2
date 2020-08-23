@@ -42,10 +42,10 @@ public class TestEventHandler {
 			ChunkPos ck = event.getWorld().getChunk(event.getPos()).getPos();
 			WhitelistItem wlItem = new WhitelistItem(event.getWorld().getBlockState(event.getPos()).getBlock().getRegistryName().getPath());
 			Map<String, String> vals = new HashMap<String, String>();
-			vals.put("price", String.valueOf(GnC.ckMgr.getChunk(ck, event.getEntity().getEntityWorld().func_234923_W_()).price += 10));
+			vals.put("price", String.valueOf(GnC.ckMgr.get(event.getWorld().func_234923_W_()).getChunk(ck).price += 10));
 			vals.put("player", UUID.randomUUID().toString()+"Test Player");
 			vals.put("whitelist", wlItem.toNBT().toString());
-			System.out.println(GnC.ckMgr.updateChunk(ck, vals, event.getEntity().getEntityWorld().func_234923_W_()));
+			System.out.println(GnC.ckMgr.get(event.getWorld().func_234923_W_()).updateChunk(ck, vals));
 			if (event.getEntity().isCrouching() && event.getEntity() instanceof PlayerEntity) {
 				GnC.aMgr.changeBalance(event.getEntity().getUniqueID(), 1000);
 			}
@@ -60,7 +60,7 @@ public class TestEventHandler {
 			wlItem.setCanBreak(true);
 			Map<String, String> vals = new HashMap<String, String>();
 			vals.put("whitelist", wlItem.toNBT().toString());
-			System.out.println(GnC.ckMgr.updateChunk(ck, vals, event.getEntity().getEntityWorld().func_234923_W_()));
+			System.out.println(GnC.ckMgr.get(event.getWorld().func_234923_W_()).updateChunk(ck, vals));
 		}
 	}
 }

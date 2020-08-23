@@ -19,30 +19,21 @@ import net.minecraft.world.World;
 import net.minecraft.world.server.ServerWorld;
 
 public class ChunkManager {
-	private Map<ChunkPos, ChunkData> ocap = new HashMap<ChunkPos, ChunkData>();
-	private Map<ChunkPos, ChunkData> ncap = new HashMap<ChunkPos, ChunkData>();
-	private Map<ChunkPos, ChunkData> ecap = new HashMap<ChunkPos, ChunkData>();
+	private Map<ChunkPos, ChunkData> cap = new HashMap<ChunkPos, ChunkData>();
 	private MinecraftServer server;
 
 	public ChunkManager() {}
 	
 	public void setServer(MinecraftServer server) {this.server = server;}
 	
-	public Map<ChunkPos, ChunkData> cap(RegistryKey<World> dimension) {
-		if (dimension == World.field_234918_g_) return ocap;
-		if (dimension == World.field_234919_h_) return ncap;
-		if (dimension == World.field_234920_i_) return ecap;
-		return null;
-	}
-	
-	public String updateChunk(ChunkPos ck, Map<String, String> values, RegistryKey<World> dim) {
+	public String updateChunk(ChunkPos ck, Map<String, String> values) {
 		//TODO populate switch statement
-		ChunkData cd = cap(dim).getOrDefault(ck, new ChunkData(ck));
+		ChunkData cd = cap.getOrDefault(ck, new ChunkData(ck));
 		for (Map.Entry<String, String> vals : values.entrySet()) {
 			switch(vals.getKey()) {
 			case "price": {
 				cd.price = Double.valueOf(vals.getValue());
-				System.out.println("price updated" +String.valueOf(cap(dim).get(ck).price));
+				System.out.println("price updated" +String.valueOf(cap.get(ck).price));
 				break;
 			}
 			case "player": {
@@ -50,86 +41,87 @@ public class ChunkManager {
 				break;
 			}
 			case "whitelist": {
-				try {GnC.ckMgr.updateWhitelistItem(ck, new WhitelistItem(JsonToNBT.getTagFromJson(vals.getValue())), dim);} catch (CommandSyntaxException e) {}
+				try {updateWhitelistItem(ck, new WhitelistItem(JsonToNBT.getTagFromJson(vals.getValue())));} catch (CommandSyntaxException e) {}
 				break;
 			}
 			default: return "Key Unrecognized" + vals.getKey();
 			}
 		}
-		cap(dim).put(ck, cd);
+		cap.put(ck, cd);
 		return "Success";
 	}
 	
-	public ChunkData getChunk(ChunkPos pos, RegistryKey<World> dim) {return cap(dim).get(pos);}
+	public ChunkData getChunk(ChunkPos pos) {return cap.get(pos);}
 	
-	public String setWhitelist(ChunkPos ck, List<WhitelistItem> whitelist, RegistryKey<World> dim) {
-		cap(dim).get(ck).whitelist = whitelist;
+	public String setWhitelist(ChunkPos ck, List<WhitelistItem> whitelist) {
+		cap.get(ck).whitelist = whitelist;
 		if (whitelist.size() == 0) return "Whitelist Cleared";
 		return "Whitelist Set";
 	}
 	
-	public String updateWhitelistItem(ChunkPos ck, WhitelistItem wlItem, RegistryKey<World> dim) {
-		for (int i = 0; i < cap(dim).get(ck).whitelist.size(); i++) {
-			if (!wlItem.getBlock().isEmpty() && cap(dim).get(ck).whitelist.get(i).getBlock().equalsIgnoreCase(wlItem.getBlock())) {
-				if (cap(dim).get(ck).whitelist.get(i).getCanBreak() != wlItem.getCanBreak()) {cap(dim).get(ck).whitelist.get(i).setCanBreak(cap(dim).get(ck).whitelist.get(i).getCanBreak());}
-				if (cap(dim).get(ck).whitelist.get(i).getCanInteract() != wlItem.getCanInteract()) {cap(dim).get(ck).whitelist.get(i).setCanInteract(wlItem.getCanInteract());}
+	public String updateWhitelistItem(ChunkPos ck, WhitelistItem wlItem) {
+		for (int i = 0; i < cap.get(ck).whitelist.size(); i++) {
+			if (!wlItem.getBlock().isEmpty() && cap.get(ck).whitelist.get(i).getBlock().equalsIgnoreCase(wlItem.getBlock())) {
+				if (cap.get(ck).whitelist.get(i).getCanBreak() != wlItem.getCanBreak()) {cap.get(ck).whitelist.get(i).setCanBreak(cap.get(ck).whitelist.get(i).getCanBreak());}
+				if (cap.get(ck).whitelist.get(i).getCanInteract() != wlItem.getCanInteract()) {cap.get(ck).whitelist.get(i).setCanInteract(wlItem.getCanInteract());}
 				return "WLItem Updated";
 			}
-			else if (!wlItem.getEntity().isEmpty() && cap(dim).get(ck).whitelist.get(i).getEntity().equalsIgnoreCase(wlItem.getEntity())) {
-				if (cap(dim).get(ck).whitelist.get(i).getCanBreak() != wlItem.getCanBreak()) {cap(dim).get(ck).whitelist.get(i).setCanBreak(cap(dim).get(ck).whitelist.get(i).getCanBreak());}
-				if (cap(dim).get(ck).whitelist.get(i).getCanInteract() != wlItem.getCanInteract()) {cap(dim).get(ck).whitelist.get(i).setCanInteract(wlItem.getCanInteract());}
+			else if (!wlItem.getEntity().isEmpty() && cap.get(ck).whitelist.get(i).getEntity().equalsIgnoreCase(wlItem.getEntity())) {
+				if (cap.get(ck).whitelist.get(i).getCanBreak() != wlItem.getCanBreak()) {cap.get(ck).whitelist.get(i).setCanBreak(cap.get(ck).whitelist.get(i).getCanBreak());}
+				if (cap.get(ck).whitelist.get(i).getCanInteract() != wlItem.getCanInteract()) {cap.get(ck).whitelist.get(i).setCanInteract(wlItem.getCanInteract());}
 				return "WLItem Updated";
 			}
 		}
-		cap(dim).get(ck).whitelist.add(wlItem);
+		cap.get(ck).whitelist.add(wlItem);
 		return "WLItem Added";
 	}
 	
-	public String removeWhitelistItem(ChunkPos ck, String item, RegistryKey<World> dim) {
-		for (int i = 0; i < cap(dim).get(ck).whitelist.size(); i++) {
-			if (cap(dim).get(ck).whitelist.get(i).getBlock().equalsIgnoreCase(item) || cap(dim).get(ck).whitelist.get(i).getEntity().equalsIgnoreCase(item)) {
-				cap(dim).get(ck).whitelist.remove(i);
+	public String removeWhitelistItem(ChunkPos ck, String item) {
+		for (int i = 0; i < cap.get(ck).whitelist.size(); i++) {
+			if (cap.get(ck).whitelist.get(i).getBlock().equalsIgnoreCase(item) || cap.get(ck).whitelist.get(i).getEntity().equalsIgnoreCase(item)) {
+				cap.get(ck).whitelist.remove(i);
 				return "WLitem Removed";
 			}
 		}
 		return "Item Not Found";
 	}
 	
-	public List<WhitelistItem> getWhitelist(ChunkPos ck, RegistryKey<World> dim) {return cap(dim).get(ck).whitelist;}
+	public List<WhitelistItem> getWhitelist(ChunkPos ck) {return cap.get(ck).whitelist;}
 	
-	public String addPlayer(ChunkPos ck, UUID player, RegistryKey<World> dim) {		
-		cap(dim).get(ck).permittedPlayers.put(player, server.getPlayerProfileCache().getProfileByUUID(player).getName());
+	public String addPlayer(ChunkPos ck, UUID player) {		
+		cap.get(ck).permittedPlayers.put(player, server.getPlayerProfileCache().getProfileByUUID(player).getName());
 		return "Player Added";
 	}
 	
-	public String removePlayer(ChunkPos ck, UUID player, RegistryKey<World> dim) {
-		cap(dim).get(ck).permittedPlayers.remove(player);
+	public String removePlayer(ChunkPos ck, UUID player) {
+		cap.get(ck).permittedPlayers.remove(player);
 		return "Player Removed";
 	}
 	
-	public Map<UUID, String> getPlayers(ChunkPos ck, RegistryKey<World> dim) {return cap(dim).get(ck).permittedPlayers;}
+	public Map<UUID, String> getPlayers(ChunkPos ck) {return cap.get(ck).permittedPlayers;}
 	
-	public void saveChunkData(ServerWorld world, RegistryKey<World> dim) {
-		for (Map.Entry<ChunkPos, ChunkData> map : cap(dim).entrySet()) {
-			WorldWSD.get(world).getChunks(dim).put(map.getKey(), map.getValue());
+	public void saveChunkData(ServerWorld world) {
+		if (cap.size() == 0) return;
+		for (Map.Entry<ChunkPos, ChunkData> map : cap.entrySet()) {
+			WorldWSD.get(world).getChunks().put(map.getKey(), map.getValue());
 		}
 		WorldWSD.get(world).markDirty();
 	}
 	
-	public void loadChunkData(ChunkPos ck, ServerWorld world, RegistryKey<World> dim) {
-		ChunkData cnk = WorldWSD.get(world).getChunks(dim).getOrDefault(ck, new ChunkData(ck));			
-		cap(dim).put(ck, cnk);
+	public void loadChunkData(ChunkPos ck, ServerWorld world) {
+		ChunkData cnk = WorldWSD.get(world).getChunks().getOrDefault(ck, new ChunkData(ck));			
+		cap.put(ck, cnk);
 	}
 	
 	//BEGIN GAME LOGIC SECTION
-	public String tempClaim(ChunkPos ck, UUID player, RegistryKey<World> dim) {
-		if (!cap(dim).get(ck).owner.equals(GnC.NIL) || !cap(dim).get(ck).renter.equals(GnC.NIL)) return "Chunk Already Claimed";
+	public String tempClaim(ChunkPos ck, UUID player) {
+		if (!cap.get(ck).owner.equals(GnC.NIL) || !cap.get(ck).renter.equals(GnC.NIL)) return "Chunk Already Claimed";
 		double balP = GnC.aMgr.getBalance(player);
-		if (balP >= cap(dim).get(ck).price*Config.TEMPCLAIM_RATE.get()) {
-			GnC.aMgr.changeBalance(player, (-1 * (cap(dim).get(ck).price * Config.TEMPCLAIM_RATE.get())));
-			cap(dim).get(ck).renter = player;
-			cap(dim).get(ck).permittedPlayers.put(player, server.getPlayerProfileCache().getProfileByUUID(player).getName());
-			cap(dim).get(ck).rentEnd = System.currentTimeMillis()+Config.TEMPCLAIM_DURATION.get();
+		if (balP >= cap.get(ck).price*Config.TEMPCLAIM_RATE.get()) {
+			GnC.aMgr.changeBalance(player, (-1 * (cap.get(ck).price * Config.TEMPCLAIM_RATE.get())));
+			cap.get(ck).renter = player;
+			cap.get(ck).permittedPlayers.put(player, server.getPlayerProfileCache().getProfileByUUID(player).getName());
+			cap.get(ck).rentEnd = System.currentTimeMillis()+Config.TEMPCLAIM_DURATION.get();
 			return "Temp Claim Successful";
 		}
 		else return "Insufficient funds to claim";
@@ -145,32 +137,32 @@ public class ChunkManager {
 	 * @param guild the guild attempting to claim
 	 * @return a textual result statement.
 	 */
-	public String guildClaim(ChunkPos ck, UUID guild, RegistryKey<World> dim) {
-		int buyType = purchaseType(ck, guild, dim);
+	public String guildClaim(ChunkPos ck, UUID guild) {
+		int buyType = purchaseType(ck, guild);
 		double outpostFee = (buyType == 1 ? Config.OUTPOST_CREATE_COST.get() : 0d);
-		if (!cap(dim).get(ck).owner.equals(GnC.NIL)) return "Chunk Already Claimed";
+		if (!cap.get(ck).owner.equals(GnC.NIL)) return "Chunk Already Claimed";
 		double balG = GnC.aMgr.getBalance(guild);
-		if (balG >= cap(dim).get(ck).price + outpostFee) {
-			GnC.aMgr.changeBalance(guild, (-1 * (cap(dim).get(ck).price)));
-			if (!cap(dim).get(ck).renter.equals(GnC.NIL)) {
-				GnC.aMgr.changeBalance(cap(dim).get(ck).renter, cap(dim).get(ck).price*Config.TEMPCLAIM_RATE.get());
-				cap(dim).get(ck).renter = GnC.NIL;
-				cap(dim).get(ck).permittedPlayers = new HashMap<UUID, String>();
+		if (balG >= cap.get(ck).price + outpostFee) {
+			GnC.aMgr.changeBalance(guild, (-1 * (cap.get(ck).price)));
+			if (!cap.get(ck).renter.equals(GnC.NIL)) {
+				GnC.aMgr.changeBalance(cap.get(ck).renter, cap.get(ck).price*Config.TEMPCLAIM_RATE.get());
+				cap.get(ck).renter = GnC.NIL;
+				cap.get(ck).permittedPlayers = new HashMap<UUID, String>();
 			}
-			cap(dim).get(ck).owner = guild;
-			cap(dim).get(ck).leasePrice = -1;
-			cap(dim).get(ck).leaseDuration = 0;
-			cap(dim).get(ck).permMin = GnC.gMgr.getBottomRank(guild);
-			cap(dim).get(ck).rentEnd = System.currentTimeMillis();
-			cap(dim).get(ck).isPublic = false;
-			cap(dim).get(ck).isForSale = false;
-			cap(dim).get(ck).isOutpost = (buyType != 0);
-			cap(dim).get(ck).canExplode = false;
-			cap(dim).get(ck).whitelist = new ArrayList<WhitelistItem>();
-			cap(dim).get(ck).permittedPlayers = new HashMap<UUID, String>();
+			cap.get(ck).owner = guild;
+			cap.get(ck).leasePrice = -1;
+			cap.get(ck).leaseDuration = 0;
+			cap.get(ck).permMin = GnC.gMgr.getBottomRank(guild);
+			cap.get(ck).rentEnd = System.currentTimeMillis();
+			cap.get(ck).isPublic = false;
+			cap.get(ck).isForSale = false;
+			cap.get(ck).isOutpost = (buyType != 0);
+			cap.get(ck).canExplode = false;
+			cap.get(ck).whitelist = new ArrayList<WhitelistItem>();
+			cap.get(ck).permittedPlayers = new HashMap<UUID, String>();
 		}
 		else return "Insufficient Guild Funds";
-		updateOutpostToCore(ck, guild, dim);
+		updateOutpostToCore(ck, guild);
 		return "Claim Successful";
 	}
 	
@@ -180,50 +172,50 @@ public class ChunkManager {
 	 * @param guild the guild whose ownership is being evaluated
 	 * @return 0=normal claim, 1=new outpost, 2=outpostclaim
 	 */
-	private int purchaseType(ChunkPos ck, UUID guild, RegistryKey<World> dim) {
-		if ((cap(dim).get(new ChunkPos(ck.x-1, ck.z)).owner.equals(guild) && !cap(dim).get(new ChunkPos(ck.x-1, ck.z)).isOutpost) ||
-			(cap(dim).get(new ChunkPos(ck.x+1, ck.z)).owner.equals(guild) && !cap(dim).get(new ChunkPos(ck.x+1, ck.z)).isOutpost) ||
-			(cap(dim).get(new ChunkPos(ck.x, ck.z-1)).owner.equals(guild) && !cap(dim).get(new ChunkPos(ck.x, ck.z-1)).isOutpost) ||
-			(cap(dim).get(new ChunkPos(ck.x, ck.z+1)).owner.equals(guild) && !cap(dim).get(new ChunkPos(ck.x, ck.z+1)).isOutpost)) 
+	private int purchaseType(ChunkPos ck, UUID guild) {
+		if ((cap.get(new ChunkPos(ck.x-1, ck.z)).owner.equals(guild) && !cap.get(new ChunkPos(ck.x-1, ck.z)).isOutpost) ||
+			(cap.get(new ChunkPos(ck.x+1, ck.z)).owner.equals(guild) && !cap.get(new ChunkPos(ck.x+1, ck.z)).isOutpost) ||
+			(cap.get(new ChunkPos(ck.x, ck.z-1)).owner.equals(guild) && !cap.get(new ChunkPos(ck.x, ck.z-1)).isOutpost) ||
+			(cap.get(new ChunkPos(ck.x, ck.z+1)).owner.equals(guild) && !cap.get(new ChunkPos(ck.x, ck.z+1)).isOutpost)) 
 			return 0;
-		if ((cap(dim).get(new ChunkPos(ck.x-1, ck.z)).owner.equals(guild) && cap(dim).get(new ChunkPos(ck.x-1, ck.z)).isOutpost) ||
-			(cap(dim).get(new ChunkPos(ck.x+1, ck.z)).owner.equals(guild) && cap(dim).get(new ChunkPos(ck.x+1, ck.z)).isOutpost) ||
-			(cap(dim).get(new ChunkPos(ck.x, ck.z-1)).owner.equals(guild) && cap(dim).get(new ChunkPos(ck.x, ck.z-1)).isOutpost) ||
-			(cap(dim).get(new ChunkPos(ck.x, ck.z+1)).owner.equals(guild) && cap(dim).get(new ChunkPos(ck.x, ck.z+1)).isOutpost)) 
+		if ((cap.get(new ChunkPos(ck.x-1, ck.z)).owner.equals(guild) && cap.get(new ChunkPos(ck.x-1, ck.z)).isOutpost) ||
+			(cap.get(new ChunkPos(ck.x+1, ck.z)).owner.equals(guild) && cap.get(new ChunkPos(ck.x+1, ck.z)).isOutpost) ||
+			(cap.get(new ChunkPos(ck.x, ck.z-1)).owner.equals(guild) && cap.get(new ChunkPos(ck.x, ck.z-1)).isOutpost) ||
+			(cap.get(new ChunkPos(ck.x, ck.z+1)).owner.equals(guild) && cap.get(new ChunkPos(ck.x, ck.z+1)).isOutpost)) 
 				return 2;
 		return 1;
 	}
 	
-	private void updateOutpostToCore(ChunkPos ck, UUID guild, RegistryKey<World> dim) {
-		if (cap(dim).get(ck).isOutpost && cap(dim).get(ck).owner.equals(guild)) {
-			if ((cap(dim).get(new ChunkPos(ck.x-1, ck.z)).owner.equals(guild) && !cap(dim).get(new ChunkPos(ck.x-1, ck.z)).isOutpost) ||
-				(cap(dim).get(new ChunkPos(ck.x-1, ck.z)).owner.equals(guild) && !cap(dim).get(new ChunkPos(ck.x+1, ck.z)).isOutpost)	||
-				(cap(dim).get(new ChunkPos(ck.x, ck.z-1)).owner.equals(guild) && !cap(dim).get(new ChunkPos(ck.x, ck.z-1)).isOutpost) ||
-				(cap(dim).get(new ChunkPos(ck.x, ck.z+1)).owner.equals(guild) && !cap(dim).get(new ChunkPos(ck.x, ck.z+1)).isOutpost)) {
-				cap(dim).get(ck).isOutpost = false;
+	private void updateOutpostToCore(ChunkPos ck, UUID guild) {
+		if (cap.get(ck).isOutpost && cap.get(ck).owner.equals(guild)) {
+			if ((cap.get(new ChunkPos(ck.x-1, ck.z)).owner.equals(guild) && !cap.get(new ChunkPos(ck.x-1, ck.z)).isOutpost) ||
+				(cap.get(new ChunkPos(ck.x-1, ck.z)).owner.equals(guild) && !cap.get(new ChunkPos(ck.x+1, ck.z)).isOutpost)	||
+				(cap.get(new ChunkPos(ck.x, ck.z-1)).owner.equals(guild) && !cap.get(new ChunkPos(ck.x, ck.z-1)).isOutpost) ||
+				(cap.get(new ChunkPos(ck.x, ck.z+1)).owner.equals(guild) && !cap.get(new ChunkPos(ck.x, ck.z+1)).isOutpost)) {
+				cap.get(ck).isOutpost = false;
 				//TODO: Remove after testing
 				System.out.println("Updated to Core: "+ck.toString());
-				updateOutpostToCore(new ChunkPos(ck.x-1, ck.z), guild, dim);
-				updateOutpostToCore(new ChunkPos(ck.x+1, ck.z), guild, dim);
-				updateOutpostToCore(new ChunkPos(ck.x, ck.z-1), guild, dim);
-				updateOutpostToCore(new ChunkPos(ck.x, ck.z+1), guild, dim);
+				updateOutpostToCore(new ChunkPos(ck.x-1, ck.z), guild);
+				updateOutpostToCore(new ChunkPos(ck.x+1, ck.z), guild);
+				updateOutpostToCore(new ChunkPos(ck.x, ck.z-1), guild);
+				updateOutpostToCore(new ChunkPos(ck.x, ck.z+1), guild);
 			}
 		}
 	}
 	
-	public String extendClaim(ChunkPos ck, UUID player, RegistryKey<World> dim) {
+	public String extendClaim(ChunkPos ck, UUID player) {
 		double balP = GnC.aMgr.getBalance(player);
-		double cost = (cap(dim).get(ck).price*Config.TEMPCLAIM_RATE.get()*cap(dim).get(ck).permittedPlayers.size());
+		double cost = (cap.get(ck).price*Config.TEMPCLAIM_RATE.get()*cap.get(ck).permittedPlayers.size());
 		if (balP >= cost) {
 			GnC.aMgr.changeBalance(player, (-1 * cost));
-			cap(dim).get(ck).rentEnd += Config.TEMPCLAIM_DURATION.get();
+			cap.get(ck).rentEnd += Config.TEMPCLAIM_DURATION.get();
 			return "Claim Extended";
 		}
 		return "Insufficient Funds";
 	}
 	
-	public String publicToggle(ChunkPos ck, boolean value, RegistryKey<World> dim) {
-		cap(dim).get(ck).isPublic = value;
+	public String publicToggle(ChunkPos ck, boolean value) {
+		cap.get(ck).isPublic = value;
 		return "Access Updated";
 	}
 }

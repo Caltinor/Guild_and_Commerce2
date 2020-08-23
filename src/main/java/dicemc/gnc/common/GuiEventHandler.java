@@ -26,8 +26,8 @@ public class GuiEventHandler {
 			int guiX = (event.getGui().width - 176)/2;
 			int xOffset = 80;
 			int guiY = (event.getGui().height - 166)/2;
-			chunkButton = 	new ImageButton(guiX +xOffset + 3, guiY - 17, 19, 17, 0 , 0, 19, INVENTORY_ADDITIONS, button -> chunkGuiLoad());
-			marketsButton = new ImageButton(guiX +xOffset +33, guiY - 17, 19, 17, 63, 0, 19, INVENTORY_ADDITIONS, button -> marketGuiLoad());
+			chunkButton = 	new ImageButton(guiX +xOffset + 3, guiY - 32, 32, 32, 157, 0, 32, INVENTORY_ADDITIONS, button -> chunkGuiLoad());
+			marketsButton = new ImageButton(guiX +xOffset +33, guiY - 32, 32, 32, 190, 0, 32, INVENTORY_ADDITIONS, button -> marketGuiLoad());
 			guildButton = 	new ImageButton(guiX +xOffset +63, guiY - 32, 32, 32, 124, 0, 32, INVENTORY_ADDITIONS, button -> guildGuiLoad());
 			event.addWidget(chunkButton);
 			event.addWidget(marketsButton);
@@ -44,7 +44,7 @@ public class GuiEventHandler {
 		}
 	}
 	
-	private static void chunkGuiLoad() {Networking.sendToServer(new PacketGuiRequest(0));}
-	private static void marketGuiLoad() {Networking.sendToServer(new PacketGuiRequest(1));}
-	private static void guildGuiLoad() {Networking.sendToServer(new PacketGuiRequest(2));}
+	private static void chunkGuiLoad() {Networking.sendToServer(new PacketGuiRequest(PacketGuiRequest.gui.CHUNK));}
+	private static void marketGuiLoad() {Networking.sendToServer(new PacketGuiRequest(PacketGuiRequest.gui.MARKET));}
+	private static void guildGuiLoad() {Networking.sendToServer(new PacketGuiRequest(PacketGuiRequest.gui.GUILD));}
 }

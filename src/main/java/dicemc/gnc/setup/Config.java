@@ -90,7 +90,7 @@ public class Config {
 	
 	private static void setupBlockMisc(ForgeConfigSpec.Builder builder) {
 		builder.comment("Miscellaneous configuration settings").push(SUB_CATEGORY_MISC);
-		//TODO populate with misc variables
+
 		DEFAULT_LAND_PRICE = builder.comment("The price of land when generating for the first time.")
 				.defineInRange("default_land_price", 100D, 0, Integer.MAX_VALUE);
 		TEMPCLAIM_DURATION = builder.comment("The length of time (in miliseconds) a temp claim is protected for.")

@@ -10,6 +10,7 @@ public class Guild {
 	public UUID guildID;
 	public String name;
 	public boolean open;
+	public boolean isAdmin;
 	public double tax;
 	public Map<Integer, String> permLevels = new HashMap<Integer, String>();
 	public Map<permKey, Integer> permissions = new HashMap<permKey, Integer>();
@@ -24,8 +25,9 @@ public class Guild {
     	SUBLET_MANAGE		//can change sublet settings
     }
 
-	public Guild(String name, UUID guildID) {
+	public Guild(String name, UUID guildID, boolean isAdmin) {
 		this.guildID = guildID;
+		this.isAdmin = isAdmin;
 		this.name = name;
 		open = false;
 		tax = 0.0;

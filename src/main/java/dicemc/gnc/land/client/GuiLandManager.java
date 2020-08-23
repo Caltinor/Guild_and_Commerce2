@@ -46,8 +46,8 @@ public class GuiLandManager extends Screen{
 	private boolean chunkView = true;
 	private boolean overlayView = false;
 	private ChunkPos selectedCK;
-	private Map<ChunkPos, Color> overlayColors;
-	private int d, mapX, mapY;
+	private Map<ChunkPos, Integer> overlayColors;
+	private double d, mapX, mapY;
 	private String ownerText;
 	//Objects
 	private Button backButton, chunkButton, subletButton, overlayButton;
@@ -61,7 +61,7 @@ public class GuiLandManager extends Screen{
 	private String response;
 	private double balP, balG;
 	private Map<ChunkPos, ChunkSummary> ckData = new HashMap<ChunkPos, ChunkSummary>();
-	private Guild myGuild = new Guild("N/A", GnC.NIL);
+	private Guild myGuild = new Guild("N/A", GnC.NIL, false);
 	private ChunkPos center;
 	private int[][] mapColors = new int[176][176];
 	
@@ -161,7 +161,8 @@ public class GuiLandManager extends Screen{
 	}
 	
 	private void updateVisibility() {
-		ownerText = 
+		overlayColors = generateMapColors();
+		ownerText = ckData.get(selectedCK).data.owner.equals(GnC.NIL) ? (ckData.get(selectedCK).data.renter.equals(GnC.NIL) ? "Unclaimed Land" : "Temporarily claimed by: "+ckData.get(selectedCK).guildName) : "Owned by: "+ckData.get(selectedCK).guildName;
 		response = "Account: $"+df.format(balP) +" [Guild $"+df.format(balG)+"]";
 		chunkButton.active = !chunkView;
 		subletButton.active = chunkView;
@@ -261,8 +262,10 @@ public class GuiLandManager extends Screen{
 	public boolean mouseClicked(double mouseX, double mouseY, int mouseButton) {
 		super.mouseClicked(mouseX, mouseY, mouseButton);
 		if (mouseX > (double)mapX+4d && mouseX <= (double)mapX+(double)d-4d && mouseY > (double)mapY+4d && mouseY < (double)mapY+(double)d-4d) {
-			int ckX = (center.x-5)+(int)((mouseX - (double)mapX-4d)/16);
-			int ckZ = (center.z-5)+(int)((mouseY - (double)mapY-4d)/16);
+			System.out.println(mouseX);
+			System.out.println(d);
+			int ckX = (center.x-5)+(int)Math.floor(((mouseX - (double)mapX-4d)/((d-8)/11)));
+			int ckZ = (center.z-5)+(int)Math.floor(((mouseY - (double)mapY-4d)/((d-8)/11)));
 			selectedCK = new ChunkPos(ckX, ckZ);
 			updateVisibility();
 			return true;
@@ -280,7 +283,7 @@ public class GuiLandManager extends Screen{
 	public void render(MatrixStack mStack, int mouseX, int mouseY, float partialTicks) {
 		this.renderBackground(mStack);
 		minecraft.getTextureManager().bindTexture(MAP_BORDER);
-		blit(mStack, mapX, mapY, d, d, 0, 0, 256, 256, 256, 256);
+		blit(mStack, (int)mapX, (int)mapY, (int)d, (int)d, 0, 0, 256, 256, 256, 256);
 		blit(mStack, this.width/2, 25, (this.width/2)-3, this.height-28, 0, 0, 256, 256, 256, 256);
 		renderMap(mapX+4, mapY+4, d-8);
 		renderOverlay(mapX+4, mapY+4, d-8);
@@ -292,13 +295,13 @@ public class GuiLandManager extends Screen{
 		subletDurationField.render(mStack, mouseX, mouseY, partialTicks);
 		playerAddField.render(mStack, mouseX, mouseY, partialTicks);		
 		if (chunkView) {
-			this.font.func_238422_b_(mStack, new StringTextComponent(TextFormatting.BLACK+"Owner: "+ckData.get(selectedCK).guildName), abandonButton.x, abandonButton.y + abandonButton.getHeight() + 10, 16777215);
+			this.font.func_238422_b_(mStack, new StringTextComponent(TextFormatting.BLACK+ownerText), abandonButton.x, abandonButton.y + abandonButton.getHeight() + 10, 16777215);
 			this.font.func_238422_b_(mStack, new StringTextComponent(TextFormatting.BLACK+"Outpost: "+(ckData.get(selectedCK).data.isOutpost ? "Yes" : "No")), abandonButton.x, abandonButton.y + abandonButton.getHeight() + 25, 16777215);
 			this.font.func_238422_b_(mStack, new StringTextComponent(TextFormatting.BLACK+"Whitelist Type: "+ whitelistType()), abandonButton.x, abandonButton.y + abandonButton.getHeight() + 40, 16777215);
 		}
 		if (!chunkView) {
 			this.font.func_238422_b_(mStack, new StringTextComponent(TextFormatting.BLACK+"Min Rank:"), publicToggleButton.x + publicToggleButton.getWidth() + 3, publicToggleButton.y, 16777215);
-			this.font.func_238422_b_(mStack, new StringTextComponent(TextFormatting.BLACK+String.valueOf(ckData.get(selectedCK).data.permMin)), publicToggleButton.x + publicToggleButton.getWidth() + 3, publicToggleButton.y+11, 16777215); //TODO replace text with rank variable	
+			this.font.func_238422_b_(mStack, new StringTextComponent(TextFormatting.BLACK+String.valueOf(ckData.get(selectedCK).data.permMin)), publicToggleButton.x + publicToggleButton.getWidth() + 3, publicToggleButton.y+11, 16777215);	
 			this.font.func_238422_b_(mStack, new StringTextComponent(TextFormatting.BLACK+"Whitelist: "+TextFormatting.RED+"Break"+TextFormatting.BLUE+" Interact"), whiteList.x, whiteList.y-10, 16777215);
 			this.font.func_238422_b_(mStack, new StringTextComponent(TextFormatting.BLACK+"Sublet Rate:"), subletCostField.x, subletCostField.y-10, 16777215);
 			this.font.func_238422_b_(mStack, new StringTextComponent(TextFormatting.BLACK+"Rent Duration (in Hours)"), subletDurationField.x, subletDurationField.y-10, 16777215);
@@ -307,7 +310,7 @@ public class GuiLandManager extends Screen{
 		super.render(mStack, mouseX, mouseY, partialTicks);
 	}
 	
-	private void renderMap(int left, int top, int d) {
+	private void renderMap(double left, double top, double d) {
 		double ivl = (double)d/176.0;
 		for (int x = 0; x < 176; x++) {
 			for (int z = 0; z < 176; z++) {
@@ -325,20 +328,20 @@ public class GuiLandManager extends Screen{
         }
 	}
 	
-	private void renderOverlay(int left, int top, int d) {
+	private void renderOverlay(double left, double top, double d) {
 		double ivl = (d)/11;
 		double x = (double)left + (ivl*(double)(5+(selectedCK.x-center.x)));
 		double y = (double)top + (ivl*(double)(5+(selectedCK.z-center.z)));
 		//draw selection box
-		rect(x+1d, y+1d, x+1d+ivl, y+1d+ivl, 0x800000FF);
+		rect(x+1, y+1, x+ivl, y+ivl, 0x800000FF);
 		//draw overlay if toggled on
 		if (overlayView) {
 			for (int x1 = 0; x1 < 11; x1++) {
 				for (int z1 = 0; z1 < 11; z1++) {
 					ChunkPos pos = new ChunkPos(center.x+(-5+x1), center.z+(-5+z1));
-					double x2 = (double)left+(ivl*(double)x1*16d);
-					double y2 = (double)top+ (ivl*(double)z1*16d);
-					if (!ckData.get(pos).data.owner.equals(GnC.NIL)) rect(x2, y2, x2+ivl, y2+ivl, overlayColors.getOrDefault(pos, new Color(0x00000000)).getRGB());
+					double x2 = (double)left+(ivl*(double)x1);
+					double y2 = (double)top+ (ivl*(double)z1);
+					rect(x2+1, y2+1, x2+ivl, y2+ivl, overlayColors.getOrDefault(pos, 0xFF000000));
 				}
 			}
 		}
@@ -433,13 +436,26 @@ public class GuiLandManager extends Screen{
 		else { return ckData.get(selectedCK).data.permittedPlayers.size() == 0 ? TextFormatting.YELLOW+"SPECIAL ACCESS" : TextFormatting.RED+"RENTED (R)";}
 	}
 	
-	private Map<ChunkPos, Color> generateMapColors() {
-		Map<ChunkPos, Color> map = new HashMap<ChunkPos, Color>();
+	private Map<ChunkPos, Integer> generateMapColors() {
+		System.out.println("Color Mapping Start");
+		Map<ChunkPos, Integer> map = new HashMap<ChunkPos, Integer>();
 		for (Map.Entry<ChunkPos, ChunkSummary> entry : ckData.entrySet()) {
-			if (map.get(entry.getKey()) == null) {
-				Random rnd = new Random();
-				Color color = new Color(rnd.nextInt(255), rnd.nextInt(255), rnd.nextInt(255), 180);
-				map.put(entry.getKey(), color);
+			int color = 0x00000000;
+			map.put(entry.getKey(), color);
+			if (entry.getValue().data.owner.equals(GnC.NIL) && entry.getValue().data.renter.equals(GnC.NIL)) continue;
+			if (!entry.getValue().data.owner.equals(GnC.NIL) || !entry.getValue().data.renter.equals(GnC.NIL)) {
+				System.out.println(entry.getKey().toString());
+				for (Map.Entry<ChunkPos, Integer> ent : map.entrySet()) {
+					if (ckData.get(ent.getKey()).data.owner.equals(entry.getValue().data.owner) || ckData.get(ent.getKey()).data.renter.equals(entry.getValue().data.renter)) {
+						color = ent.getValue();
+						map.put(entry.getKey(), color);
+					}
+					else {
+						Random rnd = new Random();
+						color = 180 << 24 | rnd.nextInt(255) << 16 | rnd.nextInt(255) << 8 | rnd.nextInt(255);
+						map.put(entry.getKey(), color);
+					}
+				}
 			}
 		}
 		return map;

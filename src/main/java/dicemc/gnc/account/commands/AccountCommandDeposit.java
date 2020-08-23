@@ -1,4 +1,4 @@
-package dicemc.gnc.common.commands;
+package dicemc.gnc.account.commands;
 
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;

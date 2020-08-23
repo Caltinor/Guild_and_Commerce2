@@ -3,8 +3,6 @@ package dicemc.gnc.account.commands;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 
-import dicemc.gnc.common.commands.AccountCommandDeposit;
-import dicemc.gnc.common.commands.AccountCommandWithdraw;
 import net.minecraft.command.CommandSource;
 import net.minecraft.command.Commands;
 

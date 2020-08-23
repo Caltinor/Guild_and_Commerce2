@@ -126,8 +126,8 @@ public class GuiNoGuild extends Screen {
 	private void actionBack() {minecraft.displayGuiScreen(parentScreen);}
 	private void actionInviteToggle() {inviteView = true; updateVisibility();}
 	private void actionOpenToggle() {inviteView = false; updateVisibility();}
-	private void actionJoin() {}
-	private void actionReject() {}
+	private void actionJoin() {Networking.sendToServer(new PacketNoGuildDataToServer(PacketNoGuildDataToServer.PkType.JOIN, inviteList.getSelected()));}
+	private void actionReject() {Networking.sendToServer(new PacketNoGuildDataToServer(PacketNoGuildDataToServer.PkType.REJECT, inviteList.getSelected()));}
 	private void actionCreate() {Networking.sendToServer(new PacketNoGuildDataToServer(PacketNoGuildDataToServer.PkType.CREATE, nameField.getText()));}
 	
 	class InviteListPanel extends ScrollPanel {

@@ -1,11 +1,15 @@
 package dicemc.gnc;
 
+import net.minecraft.util.RegistryKey;
+import net.minecraft.world.World;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 import dicemc.gnc.account.AccountManager;
@@ -20,8 +24,8 @@ import dicemc.gnc.setup.Config;
 public class GnC {
 	public static final String MOD_ID = "gnc";
 	public static final UUID NIL = UUID.fromString("00000000-0000-0000-0000-000000000000");
+	public static Map<RegistryKey<World>, ChunkManager> ckMgr = new HashMap<RegistryKey<World>, ChunkManager>();
 	public static DatabaseManager DBMgr;
-	public static ChunkManager ckMgr;
 	public static GuildManager gMgr;
 	public static AccountManager aMgr;
 	

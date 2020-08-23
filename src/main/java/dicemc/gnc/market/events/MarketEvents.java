@@ -9,6 +9,5 @@ public class MarketEvents {
 
 	@SubscribeEvent
 	public static void onServerTick(ServerTickEvent event) {
-		//TODO construct auction expiration logic
 	}
 }

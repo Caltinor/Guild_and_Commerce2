@@ -5,17 +5,33 @@ import java.util.UUID;
 import javax.annotation.Nullable;
 
 import dicemc.gnc.GnC;
+import dicemc.gnc.datastorage.wsd.MarketWSD;
+import dicemc.gnc.datastorage.wsd.WorldWSD;
 import dicemc.gnc.guild.Guild.permKey;
+import dicemc.gnc.land.ChunkData;
+import dicemc.gnc.land.ChunkManager;
 import dicemc.gnc.setup.Config;
+import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.util.RegistryKey;
+import net.minecraft.util.math.ChunkPos;
+import net.minecraft.util.text.StringTextComponent;
+import net.minecraft.world.World;
+
 import java.util.Map;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
 public class GuildManager {
 	private Map<UUID, Guild> gmap = new HashMap<UUID, Guild>();
+	private MinecraftServer server;
+	private DecimalFormat df = new DecimalFormat("###,###,###,##0.00");
 	
 	public GuildManager() {}
+	
+	public void setServer(MinecraftServer server) {this.server = server;}
 
     /**
     *creates a new record in the map for a guild with default
@@ -25,9 +41,9 @@ public class GuildManager {
     *
     *@param name the guild name as it should appear textually in game
     */
-    public String createGuild(String name) {
+    public String createGuild(String name, boolean isAdmin) {
     	UUID id = unrepeatedUUIDs();
-    	gmap.put(id, new Guild(name, id));
+    	gmap.put(id, new Guild(name, id, isAdmin));
     	for (permKey perms : permKey.values()) {addPermission(id, perms, 0);}
     	return "Guild "+name+" Created";
     }
@@ -259,9 +275,9 @@ public class GuildManager {
     	return "You have Joined "+gmap.get(guildID).name;
     }
     
-    public String createNewGuild(String name, UUID playerID) {
+    public String createNewGuild(String name, UUID playerID, boolean isAdmin) {
     	GnC.aMgr.changeBalance(playerID, -1 * Config.GUILD_CREATE_COST.get());
-    	createGuild(name);
+    	createGuild(name, isAdmin);
     	addMember(getGuildByName(name).guildID, playerID, 0);
     	return "Guild "+name+" Created";
     }
@@ -285,5 +301,97 @@ public class GuildManager {
     		if (entry.getValue().open) list.add(entry.getValue().name);
     	}
     	return list;
+    }
+    
+    public void applyTaxes() {
+    	if (gmap.size() == 0) return;
+    	for (Map.Entry<UUID, Guild> guilds : gmap.entrySet()) {
+    		//1st apply member taxes
+    		for (Map.Entry<UUID, Integer> mbrs : guilds.getValue().members.entrySet()) {
+    			if (mbrs.getValue() >= 0) {
+    				double change = (GnC.aMgr.getBalance(mbrs.getKey()) * guilds.getValue().tax);
+	    			GnC.aMgr.changeBalance(mbrs.getKey(), (-1 * change));
+	    			GnC.aMgr.changeBalance(guilds.getKey(), change);
+    			}
+    		}
+    		//2nd apply guild taxes
+    		double debt = MarketWSD.get(server.getWorld(World.field_234918_g_)).getDebt().getOrDefault(guilds.getKey(), 0d);
+    		double taxes = taxableWorth(guilds.getKey());
+    		double balG = GnC.aMgr.getBalance(guilds.getKey());
+			if (taxes >= balG) {
+				taxes -= balG;
+				GnC.aMgr.setBalance(guilds.getKey(), 0);
+				MarketWSD.get(server.getWorld(World.field_234918_g_)).getDebt().put(guilds.getKey(), taxes + debt);
+				continue;
+			}
+			else if (taxes <= balG) {
+				GnC.aMgr.changeBalance(guilds.getKey(), (-1 * taxes));
+				balG -= taxes;
+				if (debt <= balG) {
+					GnC.aMgr.changeBalance(guilds.getKey(), (-1 * debt));
+					MarketWSD.get(server.getWorld(World.field_234918_g_)).getDebt().remove(guilds.getKey());
+					continue;
+				}
+				else {
+					debt -= balG;
+					GnC.aMgr.setBalance(guilds.getKey(), 0);
+					MarketWSD.get(server.getWorld(World.field_234918_g_)).getDebt().put(guilds.getKey(), debt);
+					continue;
+				}
+			}		
+    	}
+    }
+    
+    public void printTaxInfo() {
+    	Map<UUID, Double> debt = MarketWSD.get(server.getWorld(World.field_234918_g_)).getDebt();
+    	for (Map.Entry<UUID, Double> map : debt.entrySet()) {
+    		String notice = "Debt for: "+ gmap.get(map.getKey()).name +" = $"+ df.format(map.getValue());
+    		DecimalFormat pf = new DecimalFormat("#0.00");
+    		double percent = map.getValue() / (guildWorth(map.getKey())/2);
+    		String detail = "Percent to Bankruptcy: "+pf.format(percent)+"%";
+    		for (ServerPlayerEntity player : server.getPlayerList().getPlayers()) {
+    			server.sendMessage(new StringTextComponent(notice), player.getUniqueID());
+    			server.sendMessage(new StringTextComponent(detail), player.getUniqueID());
+    		}
+    	}
+    }
+    
+    public double taxableWorth(UUID guildID) {
+    	int memberCount = 0;
+    	for (Map.Entry<UUID, Integer> mbrs : gmap.get(guildID).members.entrySet()) {if (mbrs.getValue() >= 0) memberCount++;}
+    	int taxableLand = landCoreCount(guildID) - (memberCount*Config.CHUNKS_PER_MEMBER.get());
+    	taxableLand = taxableLand > 0 ? taxableLand + landOutpostCount(guildID) : landOutpostCount(guildID);
+    	double proportion = taxableLand == 0 ? 0 : taxableLand/(landCoreCount(guildID)+landOutpostCount(guildID));
+    	return (guildWorth(guildID) * proportion);
+    }
+    
+    public double guildWorth(UUID guildID) {
+    	double totalValue = 0;
+    	for (Map.Entry<RegistryKey<World>, ChunkManager> wld : GnC.ckMgr.entrySet()) {
+	    	for (Map.Entry<ChunkPos, ChunkData> map : WorldWSD.get(server.getWorld(wld.getKey())).getChunks().entrySet()) {
+	    		if (map.getValue().owner.equals(guildID)) totalValue += map.getValue().price;
+	    	}
+    	}
+    	return totalValue;
+    }
+    
+    private int landCoreCount(UUID guildID) {
+    	int count = 0;
+    	for (Map.Entry<RegistryKey<World>, ChunkManager> wld : GnC.ckMgr.entrySet()) {
+	    	for (Map.Entry<ChunkPos, ChunkData> map : WorldWSD.get(server.getWorld(wld.getKey())).getChunks().entrySet()) {
+	    		if (map.getValue().owner.equals(guildID) && !map.getValue().isOutpost) count++;
+	    	}
+    	}
+    	return count;
+    }
+    
+    private int landOutpostCount(UUID guildID) {
+    	int count = 0;
+    	for (Map.Entry<RegistryKey<World>, ChunkManager> wld : GnC.ckMgr.entrySet()) {
+	    	for (Map.Entry<ChunkPos, ChunkData> map : WorldWSD.get(server.getWorld(wld.getKey())).getChunks().entrySet()) {
+	    		if (map.getValue().owner.equals(guildID) && map.getValue().isOutpost) count++;
+	    	}
+    	}
+    	return count;
     }
 }

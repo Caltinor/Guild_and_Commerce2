@@ -2,6 +2,7 @@ package dicemc.gnc.land.events;
 
 import dicemc.gnc.GnC;
 import dicemc.gnc.land.ChunkData;
+import dicemc.gnc.land.ChunkManager;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.math.ChunkPos;
 import net.minecraft.util.text.StringTextComponent;
@@ -19,7 +20,18 @@ public class ChunkEventHandler {
 	public static void onChunkLoad(ChunkEvent.Load event) {		
 		if (!event.getWorld().isRemote()) {
 			ServerWorld world = (ServerWorld) event.getWorld();
-			GnC.ckMgr.loadChunkData(event.getChunk().getPos(), world, world.getWorld().func_234923_W_());
+			GnC.ckMgr.get(world.func_234923_W_()).loadChunkData(event.getChunk().getPos(), world);
+		}
+	}
+	
+	@SubscribeEvent
+	public static void onWorldLoad(WorldEvent.Load event) {
+		if (!event.getWorld().isRemote()) {
+			ServerWorld world = (ServerWorld) event.getWorld();
+			if (GnC.ckMgr.get(world.func_234923_W_()) == null) {
+				GnC.ckMgr.put(world.func_234923_W_(), new ChunkManager());
+				GnC.ckMgr.get(world.func_234923_W_()).setServer(world.getServer());
+			}
 		}
 	}
 	
@@ -27,7 +39,7 @@ public class ChunkEventHandler {
 	public static void onChunkUnload(WorldEvent.Save event) {
 		if (!event.getWorld().isRemote()) {
 			ServerWorld world = (ServerWorld) event.getWorld();
-			GnC.ckMgr.saveChunkData(world, world.getWorld().func_234923_W_());
+			GnC.ckMgr.get(world.func_234923_W_()).saveChunkData(world);
 		}
 	}
 	
@@ -39,13 +51,16 @@ public class ChunkEventHandler {
 			int newX = event.getNewChunkX();
 			int newZ = event.getNewChunkZ();
 			if (oldX != newX || oldZ != newZ) {
-				ChunkData oref = GnC.ckMgr.getChunk(new ChunkPos(oldX, oldZ), event.getEntity().getEntityWorld().func_234923_W_());
-				ChunkData nref = GnC.ckMgr.getChunk(new ChunkPos(newX, newZ), event.getEntity().getEntityWorld().func_234923_W_());
+				ChunkData oref = GnC.ckMgr.get(event.getEntity().getEntityWorld().func_234923_W_()).getChunk(new ChunkPos(oldX, oldZ));
+				ChunkData nref = GnC.ckMgr.get(event.getEntity().getEntityWorld().func_234923_W_()).getChunk(new ChunkPos(newX, newZ));
+				if (oref == null) return;
 				if (!oref.owner.equals(nref.owner) || (nref.owner.equals(GnC.NIL) && !oref.renter.equals(nref.renter))) {
 					String msg = "Now Entering: " ;
-					msg += nref.owner.equals(GnC.NIL) ? 
-							"Temporary Claim of: "+ event.getEntity().getServer().getPlayerProfileCache().getProfileByUUID(nref.renter).getName() : 
-							"Territory of Guild: "+ GnC.gMgr.getGuildByID(GnC.ckMgr.getChunk(new ChunkPos(newX, newZ), event.getEntity().getEntityWorld().func_234923_W_()).owner).name;
+					if (nref.owner.equals(GnC.NIL)) {
+						if (nref.renter.equals(GnC.NIL)) msg += "Unowned Territory";
+						else msg += "Temporary Claim of: "+ event.getEntity().getServer().getPlayerProfileCache().getProfileByUUID(nref.renter).getName();
+					}
+					else msg += "Territory of Guild: "+ GnC.gMgr.getGuildByID(GnC.ckMgr.get(event.getEntity().getEntityWorld().func_234923_W_()).getChunk(new ChunkPos(newX, newZ)).owner).name;	
 					event.getEntity().sendMessage(new StringTextComponent(msg), event.getEntity().getUniqueID());
 				}
 			}

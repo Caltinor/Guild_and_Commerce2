@@ -19,11 +19,13 @@ public class MarketWSD extends WorldSavedData{
 	
 	private Map<Integer, MarketItem> MARKETS = new HashMap<Integer, MarketItem>();
 	private Map<UUID, Double> ACCOUNTS = new HashMap<UUID, Double>();
+	private Map<UUID, Double> DEBT = new HashMap<UUID, Double>();
 	private Map<Integer, StorageItem> STORAGE = new HashMap<Integer, StorageItem>();
 	private Map<Integer, BidEntry> BIDS = new HashMap<Integer, BidEntry>();
 	
 	public Map<Integer, MarketItem> getMarket() {return MARKETS;}
 	public Map<UUID, Double> getAccounts() {return ACCOUNTS;}
+	public Map<UUID, Double> getDebt() {return DEBT;}
 	public Map<Integer, StorageItem> getStorage() {return STORAGE;}
 	public Map<Integer, BidEntry> getBids() {return BIDS;}
 	
@@ -33,6 +35,8 @@ public class MarketWSD extends WorldSavedData{
 	public void read(CompoundNBT nbt) {
 		ListNBT list = nbt.getList("accounts", Constants.NBT.TAG_COMPOUND);
 		for (int i = 0; i < list.size(); i++) {ACCOUNTS.put(list.getCompound(i).getUniqueId("ID"), list.getCompound(i).getDouble("balance"));}
+		list = nbt.getList("debt", Constants.NBT.TAG_COMPOUND);
+		for (int i = 0; i < list.size(); i++) {DEBT.put(list.getCompound(i).getUniqueId("ID"), list.getCompound(i).getDouble("balance"));}
 		list = nbt.getList("markets", Constants.NBT.TAG_COMPOUND);
 		for (int i = 0; i < list.size(); i++) {MARKETS.put(list.getCompound(i).getInt("ID"), new MarketItem(list.getCompound(i).getCompound("item")));}
 		list = nbt.getList("storage", Constants.NBT.TAG_COMPOUND);
@@ -52,6 +56,14 @@ public class MarketWSD extends WorldSavedData{
 			list.add(snbt);
 		}
 		compound.put("accounts", list);
+		list = new ListNBT();
+		for (Map.Entry<UUID, Double> entry : DEBT.entrySet()) {
+			CompoundNBT snbt = new CompoundNBT();
+			snbt.putUniqueId("ID", entry.getKey());
+			snbt.putDouble("balance", entry.getValue());
+			list.add(snbt);
+		}
+		compound.put("debt", list);
 		list = new ListNBT();
 		for (Map.Entry<Integer, MarketItem> entry : MARKETS.entrySet()) {
 			CompoundNBT snbt = new CompoundNBT();

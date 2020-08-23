@@ -18,13 +18,14 @@ public class PacketNoGuildDataToServer {
 	public enum PkType {
 		JOIN((packet, ctx) -> GnC.gMgr.joinGuild(GnC.gMgr.getGuildByName(packet.str).guildID, ctx.get().getSender().getUniqueID())),
 		REJECT((packet, ctx) -> {
+			String resp = GnC.gMgr.rejectInvite(GnC.gMgr.getGuildByName(packet.str).guildID, ctx.get().getSender().getUniqueID());
 			double balP = GnC.aMgr.getBalance(ctx.get().getSender().getUniqueID());
 			List<String> invites = GnC.gMgr.getInvitedGuilds(ctx.get().getSender().getUniqueID());
 			List<String> openGuilds = GnC.gMgr.getOpenGuilds(ctx.get().getSender().getUniqueID());
 			Networking.sendToClient(new PacketUpdateGuiNoGuild(balP, invites, openGuilds), ctx.get().getSender());
-			return GnC.gMgr.rejectInvite(GnC.gMgr.getGuildByName(packet.str).guildID, ctx.get().getSender().getUniqueID());			
+			return resp;			
 		}),
-		CREATE((packet, ctx) -> GnC.gMgr.createNewGuild(packet.str, ctx.get().getSender().getUniqueID()));
+		CREATE((packet, ctx) -> GnC.gMgr.createNewGuild(packet.str, ctx.get().getSender().getUniqueID(), false));
 	
 		public final BiFunction<PacketNoGuildDataToServer, Supplier<NetworkEvent.Context>, String> packetHandler;
 		

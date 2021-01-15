@@ -1,6 +1,5 @@
 package dicemc.gnc.market;
 
-import java.sql.ResultSet;
 import java.util.UUID;
 
 import dicemc.gnc.GnC;
@@ -32,8 +31,6 @@ public class MarketItem {
 		this.giveItem = giveItem;
 		dtgPlaced = System.currentTimeMillis();
 	}
-	
-	public MarketItem(ResultSet rs) {/*TODO generate constructor from ResultSet*/}
 	
 	public MarketItem(CompoundNBT nbt) {
 		id = 		nbt.getInt("id");

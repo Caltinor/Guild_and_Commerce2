@@ -25,8 +25,8 @@ public class CommonSetup {
 	@SubscribeEvent
 	public static void onServerStart(FMLServerStartingEvent event) {
 		if (Config.MARKET_USE_DB.get())  {GnC.DBMgr = new DatabaseManager();}	
-		else {MarketWSD.get(event.getServer().getWorld(event.getServer().func_241755_D_().func_234923_W_()));}
-		WorldWSD.get(event.getServer().getWorld(event.getServer().func_241755_D_().func_234923_W_()));
+		else {MarketWSD.get(event.getServer().getWorld(event.getServer().func_241755_D_().getDimensionKey()));}
+		WorldWSD.get(event.getServer().getWorld(event.getServer().func_241755_D_().getDimensionKey()));
 		GnC.aMgr.setServer(event.getServer());
 		GnC.gMgr.setServer(event.getServer());
 	}

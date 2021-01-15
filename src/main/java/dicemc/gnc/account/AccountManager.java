@@ -16,7 +16,7 @@ public class AccountManager {
 	
 	public AccountManager() {}
 	
-	public void setServer(MinecraftServer server) {this.server = server; world = server.getWorld(World.field_234918_g_);}
+	public void setServer(MinecraftServer server) {this.server = server; world = server.getWorld(World.OVERWORLD);}
 
     /**
     *This method checks if an account exists and adds one if it does not.
@@ -28,7 +28,7 @@ public class AccountManager {
     public String accountExists(UUID ID, boolean isPlayer) {
     	String str = "";
     	if (Config.MARKET_USE_DB.get()) {
-    		//TODO add DB logic
+    		// add DB logic
     	}
     	else {
     		if (MarketWSD.get(world).getAccounts().containsKey(ID)) str = "Account Exists for "+ID.toString();
@@ -48,7 +48,7 @@ public class AccountManager {
     public double getBalance(UUID ID) {
     	double bal = 0d;
     	if (Config.MARKET_USE_DB.get()) {
-    		//TODO add DB logic
+    		// add DB logic
     	}
     	else {
     		bal = MarketWSD.get(world).getAccounts().get(ID);
@@ -67,12 +67,12 @@ public class AccountManager {
     public String setBalance(UUID ID, double value) {
     	String str = "";
     	if (Config.MARKET_USE_DB.get()) {
-    		//TODO add DB logic
+    		// add DB logic
     	}
     	else {
     		MarketWSD.get(world).getAccounts().put(ID, value);
     		MarketWSD.get(world).markDirty();
-    		str = "Player :"+server.getPlayerProfileCache().getProfileByUUID(ID).getName()+ " balance set to $" +df.format(value);
+    		str = "balance set to $" +df.format(value);
     	}
     	return str;
     }
@@ -89,7 +89,7 @@ public class AccountManager {
     public String changeBalance(UUID ID, double value) {
     	String str = "";
     	if (Config.MARKET_USE_DB.get()) {
-    		//TODO add DB logic
+    		// add DB logic
     	}
     	else {
     		double bal = getBalance(ID);
@@ -113,7 +113,7 @@ public class AccountManager {
     public String transferFunds(UUID fromID, UUID toID, double value) {
     	String str = "";
     	if (Config.MARKET_USE_DB.get()) {
-    		//TODO add DB logic
+    		// add DB logic
     	}
     	else {
     		if (value <= getBalance(fromID)) {
@@ -137,7 +137,7 @@ public class AccountManager {
     private String addAccount(UUID ID, double balance) {
     	String str = "";
     	if (Config.MARKET_USE_DB.get()) {
-    		//TODO add DB logic
+    		// add DB logic
     	}
     	else {
     		MarketWSD.get(world).getAccounts().put(ID, balance);

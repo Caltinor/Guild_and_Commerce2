@@ -65,7 +65,7 @@ public class GuiNoGuild extends Screen {
 	@Override
 	protected void init() {
 		nameField = new TextFieldWidget(font, this.width/8, this.height/2, this.width/4, 20, new StringTextComponent(""));
-		createButton = new Button(nameField.x, nameField.y+nameField.getHeight()+5, nameField.getWidth(), 20, new StringTextComponent("Create Guild"), button -> actionCreate());
+		createButton = new Button(nameField.x, nameField.y+nameField.getHeightRealms()+5, nameField.getWidth(), 20, new StringTextComponent("Create Guild"), button -> actionCreate());
 		backButton = new Button(this.width/2-28, this.height-30, 75, 20, new StringTextComponent("Back"), button -> actionBack());
 		inviteList = new InviteListPanel(minecraft, this.width/2-3, this.height/2,  this.height/4, this.width/2);
 		inviteToggle = new Button(inviteList.x, inviteList.y-23, inviteList.width/2, 20, new StringTextComponent("Invites"), button -> actionInviteToggle());
@@ -169,7 +169,7 @@ public class GuiNoGuild extends Screen {
             if (lines.size() == 0) {
             	ITextComponent chat = ForgeHooks.newChatWithLinks("", false);
                 int maxTextLength = this.width - 12;
-            	ret.addAll(font.func_238420_b_().func_238362_b_(chat, maxTextLength, Style.EMPTY)); 
+            	ret.addAll(font.getCharacterManager().func_238362_b_(chat, maxTextLength, Style.EMPTY)); 
             	return ret;
             }
             for (String line : lines) {
@@ -180,7 +180,7 @@ public class GuiNoGuild extends Screen {
                 ITextComponent chat = ForgeHooks.newChatWithLinks(line, false);
                 int maxTextLength = this.width - 12;
                 if (maxTextLength >= 0) {
-                    ret.addAll(font.func_238420_b_().func_238362_b_(chat, maxTextLength, Style.EMPTY));
+                    ret.addAll(font.getCharacterManager().func_238362_b_(chat, maxTextLength, Style.EMPTY));
                 }
             }
             return ret;
@@ -211,7 +211,7 @@ public class GuiNoGuild extends Screen {
                     	vLine(mStack, left+width-1, relativeY-1, relativeY-1+font.FONT_HEIGHT, Color.YELLOW.getRGB());
                     }
                     RenderSystem.enableBlend();
-                    GuiNoGuild.this.font.func_238407_a_(mStack, lines.get(i), left+1, relativeY, 0xFFFFFF);
+                    //GuiNoGuild.this.font.func_238407_a_(mStack, lines.get(i), left+1, relativeY, 0xFFFFFF);
                     RenderSystem.disableAlphaTest();
                     RenderSystem.disableBlend();
                 }
@@ -230,7 +230,7 @@ public class GuiNoGuild extends Screen {
             selectedItem = lineIdx-1;
             if (line != null)
             {
-                return font.func_238420_b_().func_238357_a_(line, mouseX);
+                return font.getCharacterManager().func_238357_a_(line, mouseX);
             }
             return null;
         }

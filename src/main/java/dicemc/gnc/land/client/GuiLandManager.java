@@ -20,6 +20,7 @@ import dicemc.gnc.guild.Guild.permKey;
 import dicemc.gnc.land.ChunkData;
 import dicemc.gnc.land.WhitelistItem;
 import dicemc.gnc.land.network.PacketChunkDataToServer;
+import dicemc.gnc.setup.Config;
 import dicemc.gnc.setup.Networking;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screen.Screen;
@@ -118,8 +119,8 @@ public class GuiLandManager extends Screen{
 		playerList = new PlayerListPanel(minecraft, xq1, yq1-9, yq3, xq2+3);
 		//Claim Toggle Objects 
 		tempClaimButton = new Button(xq2+3, 28, xq1-6, 20, new StringTextComponent("Temp Claim"), button -> actionTempClaim());
-		guildClaimButton = new Button(xq2+3, tempClaimButton.y + tempClaimButton.getHeight()+ 10, xq1-6, 20, new StringTextComponent("Guild Claim"), button -> actionGuildClaim());
-		abandonButton = new Button(xq2+3, guildClaimButton.y + guildClaimButton.getHeight() + 3, xq1-6, 20, new StringTextComponent("Abandon Claim"), button -> actionAbandon());
+		guildClaimButton = new Button(xq2+3, tempClaimButton.y + tempClaimButton.getHeightRealms()+ 10, xq1-6, 20, new StringTextComponent("Guild Claim"), button -> actionGuildClaim());
+		abandonButton = new Button(xq2+3, guildClaimButton.y + guildClaimButton.getHeightRealms() + 3, xq1-6, 20, new StringTextComponent("Abandon Claim"), button -> actionAbandon());
 		extendButton = new Button(xq3, tempClaimButton.y, xq1-6, 20, new StringTextComponent("Extend Time"), button -> actionExtend());
 		sellButton = new Button(xq3, guildClaimButton.y, xq1-6, 20, new StringTextComponent("Sell Claim"), button -> actionSell());
 		sellField = new TextFieldWidget(font, xq3, abandonButton.y, xq1-6, 20, new StringTextComponent(""));
@@ -127,16 +128,16 @@ public class GuiLandManager extends Screen{
 		subletCostField = new TextFieldWidget(font, xq2+3, 41, ((xq2-6)/3), 20, new StringTextComponent(""));
 		subletDurationField = new TextFieldWidget(font, subletCostField.x + subletCostField.getWidth(), subletCostField.y, subletCostField.getWidth(), 20, new StringTextComponent(""));
 		updateSubletButton = new Button(subletDurationField.x + subletDurationField.getWidth()+ 3, subletCostField.y, subletCostField.getWidth()-5, 20, new StringTextComponent("Update Rent"), button -> actionUpdateSublet());
-		publicToggleButton = new Button(xq2+3, subletCostField.y + subletCostField.getHeight() + 3, 60, 20, new StringTextComponent("Public: No"), button -> actionPublicToggle());
-		whiteList = new WhiteListPanel(minecraft, updateSubletButton.x-(xq2+3), (playerList.y-13)-(publicToggleButton.y+publicToggleButton.getHeight()+13), (publicToggleButton.y+publicToggleButton.getHeight()+13), playerList.x);
+		publicToggleButton = new Button(xq2+3, subletCostField.y + subletCostField.getHeightRealms() + 3, 60, 20, new StringTextComponent("Public: No"), button -> actionPublicToggle());
+		whiteList = new WhiteListPanel(minecraft, updateSubletButton.x-(xq2+3), (playerList.y-13)-(publicToggleButton.y+publicToggleButton.getHeightRealms()+13), (publicToggleButton.y+publicToggleButton.getHeightRealms()+13), playerList.x);
 		disableSubletButton = new Button(updateSubletButton.x, publicToggleButton.y, updateSubletButton.getWidth(), 20, new StringTextComponent("Disable Rent"), button -> actionDisableSublet());
 		minRankIncreaseButton = new Button(disableSubletButton.x - 18, disableSubletButton.y, 15, 20, new StringTextComponent("+"), button -> actionMinRankIncrease());
 		minRankDecreaseButton = new Button(minRankIncreaseButton.x-15, minRankIncreaseButton.y, 15, 20, new StringTextComponent("-"), button -> actionMinRankDecrease());
 		breakToggleButton = new Button(disableSubletButton.x, whiteList.y, updateSubletButton.getWidth(), 20, new StringTextComponent("Break"), button -> actionBreakToggle());
-		interactToggleButton = new Button(breakToggleButton.x, breakToggleButton.y + breakToggleButton.getHeight() + 3, updateSubletButton.getWidth(), 20, new StringTextComponent("Interact"), button -> actionInteractToggle());
+		interactToggleButton = new Button(breakToggleButton.x, breakToggleButton.y + breakToggleButton.getHeightRealms() + 3, updateSubletButton.getWidth(), 20, new StringTextComponent("Interact"), button -> actionInteractToggle());
 		clearWhitelistButton = new Button(interactToggleButton.x, whiteList.y+whiteList.height-20, updateSubletButton.getWidth(), 20, new StringTextComponent("Clear List"), button -> actionClearWhitelist());
 		playerAddField = new TextFieldWidget(font, playerList.x+playerList.width+3, playerList.y, this.width-playerList.x-playerList.width-12, 20, new StringTextComponent(""));
-		memberRemoveButton = new Button(playerAddField.x, playerAddField.y+playerAddField.getHeight()+3, playerAddField.getWidth()/2, 20, new StringTextComponent("Remove"), button -> actionMemberRemove());
+		memberRemoveButton = new Button(playerAddField.x, playerAddField.y+playerAddField.getHeightRealms()+3, playerAddField.getWidth()/2, 20, new StringTextComponent("Remove"), button -> actionMemberRemove());
 		memberAddButton = new Button(memberRemoveButton.x+memberRemoveButton.getWidth(), memberRemoveButton.y, memberRemoveButton.getWidth(), 20, new StringTextComponent("Add"), button -> actionMemberAdd());
 		//final touches
 		addButton(backButton);
@@ -171,13 +172,13 @@ public class GuiLandManager extends Screen{
 		
 		//chunk toggle items
 		tempClaimButton.visible = chunkView;
-		tempClaimButton.active = ckData.get(selectedCK).data.owner.equals(GnC.NIL) && ckData.get(selectedCK).data.renter.equals(GnC.NIL);
+		tempClaimButton.active = ckData.get(selectedCK).data.owner.equals(GnC.NIL) && ckData.get(selectedCK).data.renter.equals(GnC.NIL) && balP >= (ckData.get(selectedCK).data.price * Config.TEMPCLAIM_RATE.get());
 		
 		boolean gon = guildOwnedNeighbor();
 		guildClaimButton.visible = chunkView;
-		guildClaimButton.active = 	(isPermitted(permKey.CORE_CLAIM) && gon)|| 
-									(isPermitted(permKey.OUTPOST_CLAIM) && gon && guildOwnedNeighborIsOutpost())||
-									(isPermitted(permKey.OUTPOST_CREATE) && !gon);
+		guildClaimButton.active = 	(isPermitted(permKey.CORE_CLAIM) && gon && !guildOwnedNeighborIsOutpost() && balG >= ckData.get(selectedCK).data.price)|| 
+									(isPermitted(permKey.OUTPOST_CLAIM) && gon && guildOwnedNeighborIsOutpost() && balG >= ckData.get(selectedCK).data.price)||
+									(isPermitted(permKey.OUTPOST_CREATE) && !gon && (balG >= (ckData.get(selectedCK).data.price + Config.OUTPOST_CREATE_COST.get())));
 		guildClaimButton.setMessage(new StringTextComponent(gon ? "Guild Claim" : "New Outpost"));
 		
 		abandonButton.visible = chunkView;
@@ -185,8 +186,9 @@ public class GuiLandManager extends Screen{
 				&& ckData.get(selectedCK).data.owner.equals(myGuild.guildID));
 		
 		extendButton.visible = chunkView;
-		extendButton.active = ckData.get(selectedCK).data.owner.equals(myGuild.guildID) 
-				|| !ckData.get(selectedCK).data.permittedPlayers.getOrDefault(minecraft.player.getUniqueID(), "N/A").equalsIgnoreCase("N/A");
+		extendButton.active = (ckData.get(selectedCK).data.owner.equals(myGuild.guildID) 
+				|| !ckData.get(selectedCK).data.permittedPlayers.getOrDefault(minecraft.player.getUniqueID(), "N/A").equalsIgnoreCase("N/A")) &&
+				balP >= (ckData.get(selectedCK).data.price * Config.TEMPCLAIM_RATE.get() * ckData.get(selectedCK).data.permittedPlayers.size());
 		
 		sellButton.visible = chunkView;
 		sellButton.active = ckData.get(selectedCK).data.owner.equals(myGuild.guildID) && isPermitted(permKey.CLAIM_SELL);
@@ -238,7 +240,12 @@ public class GuiLandManager extends Screen{
 	
 	@Override
 	public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
-		return super.keyPressed(keyCode, scanCode, modifiers);
+		super.keyPressed(keyCode, scanCode, modifiers);
+		sellField.keyPressed(keyCode, scanCode, modifiers);
+		subletCostField.keyPressed(keyCode, scanCode, modifiers);
+		subletDurationField.keyPressed(keyCode, scanCode, modifiers);
+		playerAddField.keyPressed(keyCode, scanCode, modifiers);
+		return true;
 	}
 	
 	public boolean charTyped(char ch, int a) {
@@ -287,25 +294,25 @@ public class GuiLandManager extends Screen{
 		renderMap(mapX+4, mapY+4, d-8);
 		renderOverlay(mapX+4, mapY+4, d-8);
 		this.drawString(mStack, this.font, response, 5, 5, 16777215);	
-		this.font.func_238422_b_(mStack, new StringTextComponent(TextFormatting.BLACK+"Permitted Players:"), playerList.x, playerList.y-10, 1677215);
+		this.font.func_243246_a(mStack, new StringTextComponent(TextFormatting.BLACK+"Permitted Players:"), playerList.x, playerList.y-10, 1677215);
 		sellField.render(mStack, mouseX, mouseY, partialTicks);
 		playerList.render(mStack, mouseX, mouseY, partialTicks);
 		subletCostField.render(mStack, mouseX, mouseY, partialTicks);
 		subletDurationField.render(mStack, mouseX, mouseY, partialTicks);
 		playerAddField.render(mStack, mouseX, mouseY, partialTicks);		
 		if (chunkView) {
-			this.font.func_238422_b_(mStack, new StringTextComponent(TextFormatting.BLACK+ownerText), abandonButton.x, abandonButton.y + abandonButton.getHeight() + 10, 16777215);
-			this.font.func_238422_b_(mStack, new StringTextComponent(TextFormatting.BLACK+"Outpost: "+(ckData.get(selectedCK).data.isOutpost ? "Yes" : "No")), abandonButton.x, abandonButton.y + abandonButton.getHeight() + 25, 16777215);
-			this.font.func_238422_b_(mStack, new StringTextComponent(TextFormatting.BLACK+"Whitelist Type: "+ whitelistType()), abandonButton.x, abandonButton.y + abandonButton.getHeight() + 40, 16777215);
+			this.font.func_243246_a(mStack, new StringTextComponent(TextFormatting.BLACK+ownerText), abandonButton.x, abandonButton.y + abandonButton.getHeightRealms() + 10, 16777215);
+			this.font.func_243246_a(mStack, new StringTextComponent(TextFormatting.BLACK+"Outpost: "+(ckData.get(selectedCK).data.isOutpost ? "Yes" : "No")), abandonButton.x, abandonButton.y + abandonButton.getHeightRealms() + 25, 16777215);
+			this.font.func_243246_a(mStack, new StringTextComponent(TextFormatting.BLACK+"Whitelist Type: "+ whitelistType()), abandonButton.x, abandonButton.y + abandonButton.getHeightRealms() + 40, 16777215);
 			if (!ckData.get(selectedCK).data.renter.equals(GnC.NIL))
-				this.font.func_238422_b_(mStack, new StringTextComponent(TextFormatting.BLUE+"Rented Until ["+String.valueOf(new Timestamp(ckData.get(selectedCK).data.rentEnd)+"]")), abandonButton.x, abandonButton.y + abandonButton.getHeight() + 55, 16777215);
+				this.font.func_243246_a(mStack, new StringTextComponent(TextFormatting.BLUE+"Rented Until ["+String.valueOf(new Timestamp(ckData.get(selectedCK).data.rentEnd)+"]")), abandonButton.x, abandonButton.y + abandonButton.getHeightRealms() + 55, 16777215);
 		}
 		if (!chunkView) {
-			this.font.func_238422_b_(mStack, new StringTextComponent(TextFormatting.BLACK+"Min Rank:"), publicToggleButton.x + publicToggleButton.getWidth() + 3, publicToggleButton.y, 16777215);
-			this.font.func_238422_b_(mStack, new StringTextComponent(TextFormatting.BLACK+String.valueOf(ckData.get(selectedCK).data.permMin)), publicToggleButton.x + publicToggleButton.getWidth() + 3, publicToggleButton.y+11, 16777215);	
-			this.font.func_238422_b_(mStack, new StringTextComponent(TextFormatting.BLACK+"Whitelist: "+TextFormatting.RED+"Break"+TextFormatting.BLUE+" Interact"), whiteList.x, whiteList.y-10, 16777215);
-			this.font.func_238422_b_(mStack, new StringTextComponent(TextFormatting.BLACK+"Sublet Rate:"), subletCostField.x, subletCostField.y-10, 16777215);
-			this.font.func_238422_b_(mStack, new StringTextComponent(TextFormatting.BLACK+"Rent Duration (in Hours)"), subletDurationField.x, subletDurationField.y-10, 16777215);
+			this.font.func_243246_a(mStack, new StringTextComponent(TextFormatting.BLACK+"Min Rank:"), publicToggleButton.x + publicToggleButton.getWidth() + 3, publicToggleButton.y, 16777215);
+			this.font.func_243246_a(mStack, new StringTextComponent(TextFormatting.BLACK+String.valueOf(ckData.get(selectedCK).data.permMin)), publicToggleButton.x + publicToggleButton.getWidth() + 3, publicToggleButton.y+11, 16777215);	
+			this.font.func_243246_a(mStack, new StringTextComponent(TextFormatting.BLACK+"Whitelist: "+TextFormatting.RED+"Break"+TextFormatting.BLUE+" Interact"), whiteList.x, whiteList.y-10, 16777215);
+			this.font.func_243246_a(mStack, new StringTextComponent(TextFormatting.BLACK+"Sublet Rate:"), subletCostField.x, subletCostField.y-10, 16777215);
+			this.font.func_243246_a(mStack, new StringTextComponent(TextFormatting.BLACK+"Rent Duration (in Hours)"), subletDurationField.x, subletDurationField.y-10, 16777215);
 			whiteList.render(mStack, mouseX, mouseY, partialTicks);
 		}
 		super.render(mStack, mouseX, mouseY, partialTicks);
@@ -386,12 +393,12 @@ public class GuiLandManager extends Screen{
 	private void actionMinRankIncrease() {}
 	private void actionMinRankDecrease() {}
 	private void actionDisableSublet() {} 
-	private void actionBreakToggle() { //TODO UNTESTED
+	private void actionBreakToggle() { // UNTESTED
 		WhitelistItem wlItem = ckData.get(selectedCK).data.whitelist.get(whiteList.selectedItem);
 		wlItem.setCanBreak(!wlItem.getCanBreak());
 		Networking.sendToServer(new PacketChunkDataToServer(PacketChunkDataToServer.PkType.INTERACT, selectedCK, wlItem.toNBT().toString()));
 	}
-	private void actionInteractToggle() { //TODO UNTESTED
+	private void actionInteractToggle() { // UNTESTED
 		WhitelistItem wlItem = ckData.get(selectedCK).data.whitelist.get(whiteList.selectedItem);
 		wlItem.setCanBreak(!wlItem.getCanBreak());
 		Networking.sendToServer(new PacketChunkDataToServer(PacketChunkDataToServer.PkType.INTERACT, selectedCK, wlItem.toNBT().toString()));
@@ -499,7 +506,7 @@ public class GuiLandManager extends Screen{
                 ITextComponent chat = ForgeHooks.newChatWithLinks(line, false);
                 int maxTextLength = this.width - 12;
                 if (maxTextLength >= 0) {
-                    ret.addAll(font.func_238420_b_().func_238362_b_(chat, maxTextLength, Style.EMPTY));
+                    ret.addAll(font.getCharacterManager().func_238362_b_(chat, maxTextLength, Style.EMPTY));
                 }
             }
             return ret;
@@ -530,7 +537,7 @@ public class GuiLandManager extends Screen{
                     	vLine(mStack, left+width-1, relativeY-1, relativeY-1+font.FONT_HEIGHT, Color.YELLOW.getRGB());
                     }
                     RenderSystem.enableBlend();
-                    GuiLandManager.this.font.func_238407_a_(mStack, lines.get(i), left+1, relativeY, 0xFFFFFF);
+                    //GuiLandManager.this.font.func_243248_b(mStack, lines.get(i), left+1, relativeY, 0xFFFFFF);
                     RenderSystem.disableAlphaTest();
                     RenderSystem.disableBlend();
                 }
@@ -549,7 +556,7 @@ public class GuiLandManager extends Screen{
             selectedItem = lineIdx-1;
             if (line != null)
             {
-                return font.func_238420_b_().func_238357_a_(line, mouseX);
+                return font.getCharacterManager().func_238357_a_(line, mouseX);
             }
             return null;
         }
@@ -605,7 +612,7 @@ public class GuiLandManager extends Screen{
 	                ITextComponent chat = ForgeHooks.newChatWithLinks(line, false);
 	                int maxTextLength = this.width - 12;
 	                if (maxTextLength >= 0) {
-	                    ret.addAll(font.func_238420_b_().func_238362_b_(chat, maxTextLength, Style.EMPTY));
+	                    ret.addAll(font.getCharacterManager().func_238362_b_(chat, maxTextLength, Style.EMPTY));
 	                }
 	            }
 	            return ret;
@@ -636,7 +643,7 @@ public class GuiLandManager extends Screen{
 	                    	vLine(mStack, left+width-1, relativeY-1, relativeY-1+font.FONT_HEIGHT, Color.YELLOW.getRGB());
 	                    }
 	                    RenderSystem.enableBlend();
-	                    GuiLandManager.this.font.func_238407_a_(mStack, lines.get(i), left+1, relativeY, 0xFFFFFF);
+	                    //GuiLandManager.this.font.func_238407_a_(mStack, lines.get(i), left+1, relativeY, 0xFFFFFF);
 	                    RenderSystem.disableAlphaTest();
 	                    RenderSystem.disableBlend();
 	                }
@@ -655,7 +662,7 @@ public class GuiLandManager extends Screen{
 	            selectedItem = lineIdx-1;
 	            if (line != null)
 	            {
-	                return font.func_238420_b_().func_238357_a_(line, mouseX);
+	                return font.getCharacterManager().func_238357_a_(line, mouseX);
 	            }
 	            return null;
 	        }

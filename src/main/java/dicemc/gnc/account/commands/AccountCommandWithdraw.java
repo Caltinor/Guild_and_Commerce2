@@ -18,7 +18,7 @@ public class AccountCommandWithdraw implements Command<CommandSource>{
 
 	@Override
 	public int run(CommandContext<CommandSource> context) throws CommandSyntaxException {
-		// TODO Auto-generated method stub
+		// Auto-generated method stub
 		return 0;
 	}	
 }

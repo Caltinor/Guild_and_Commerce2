@@ -5,6 +5,8 @@ import java.util.Map;
 import java.util.UUID;
 
 import dicemc.gnc.GnC;
+import dicemc.gnc.guild.Guild;
+import dicemc.gnc.guild.Guild.permKey;
 import dicemc.gnc.land.WhitelistItem;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.math.ChunkPos;
@@ -30,7 +32,7 @@ public class TestEventHandler {
 			int newX = event.getNewChunkX();
 			int newZ = event.getNewChunkZ();
 			if (oldX != newX || oldZ != newZ) {
-				ChunkData ref = GnC.ckMgr.getChunk(new ChunkPos(newX, newZ), event.getEntity().getEntityWorld().func_234923_W_());
+				ChunkData ref = GnC.ckMgr.getChunk(new ChunkPos(newX, newZ), event.getEntity().getEntityWorld().getDimensionKey());
 				event.getEntity().sendMessage(new StringTextComponent("Entering: " +ref.pos.toString() + " $"+String.valueOf(ref.price)), event.getEntity().getUniqueID());
 			}
 		}
@@ -42,10 +44,10 @@ public class TestEventHandler {
 			ChunkPos ck = event.getWorld().getChunk(event.getPos()).getPos();
 			WhitelistItem wlItem = new WhitelistItem(event.getWorld().getBlockState(event.getPos()).getBlock().getRegistryName().getPath());
 			Map<String, String> vals = new HashMap<String, String>();
-			vals.put("price", String.valueOf(GnC.wldMgr.get(event.getWorld().func_234923_W_()).getChunk(ck).price += 10));
-			vals.put("player", UUID.randomUUID().toString()+"Test Player");
-			vals.put("whitelist", wlItem.toNBT().toString());
-			System.out.println(GnC.wldMgr.get(event.getWorld().func_234923_W_()).updateChunk(ck, vals));
+			vals.put("price", String.valueOf(GnC.wldMgr.get(event.getWorld().getDimensionKey()).getChunk(ck).price += 10));
+			//vals.put("player", UUID.randomUUID().toString()+"Test Player");
+			//vals.put("whitelist", wlItem.toNBT().toString());
+			System.out.println(GnC.wldMgr.get(event.getWorld().getDimensionKey()).updateChunk(ck, vals));
 			if (event.getEntity().isCrouching() && event.getEntity() instanceof PlayerEntity) {
 				GnC.aMgr.changeBalance(event.getEntity().getUniqueID(), 1000);
 			}
@@ -55,12 +57,22 @@ public class TestEventHandler {
 	@SubscribeEvent
 	public static void onLeftClick(PlayerInteractEvent.LeftClickBlock event) {
 		if (!event.getWorld().isRemote()) {
-			ChunkPos ck = event.getWorld().getChunk(event.getPos()).getPos();
-			WhitelistItem wlItem = new WhitelistItem(event.getWorld().getBlockState(event.getPos()).getBlock().getRegistryName().getPath());
-			wlItem.setCanBreak(true);
-			Map<String, String> vals = new HashMap<String, String>();
-			vals.put("whitelist", wlItem.toNBT().toString());
-			System.out.println(GnC.wldMgr.get(event.getWorld().func_234923_W_()).updateChunk(ck, vals));
+			if (event.getEntity().isCrouching() && event.getEntity() instanceof PlayerEntity) {
+				Guild guild = GnC.gMgr.getGuildByMember(event.getEntity().getUniqueID());
+				if (guild != null && GnC.aMgr.getBalance(event.getEntity().getUniqueID()) >= 100) {
+					GnC.aMgr.changeBalance(event.getEntity().getUniqueID(), -100);
+					System.out.println(GnC.aMgr.changeBalance(guild.guildID, 100));
+				}
+			}
+			else {
+				Guild guild = GnC.gMgr.getGuildByMember(event.getEntity().getUniqueID());
+				if (guild != null) {
+					System.out.println(guild.members.getOrDefault(event.getEntity().getUniqueID(), 1337));
+					for (Map.Entry<permKey, Integer> perms : guild.permissions.entrySet()) {
+						System.out.println(perms.getKey().toString() + ": "+ String.valueOf(perms.getValue()));
+					}
+				}
+			}
 		}
 	}
 }

@@ -10,6 +10,7 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 
 import dicemc.gnc.GnC;
 import dicemc.gnc.datastorage.wsd.WorldWSD;
+import dicemc.gnc.guild.Guild.permKey;
 import dicemc.gnc.setup.Config;
 import net.minecraft.nbt.JsonToNBT;
 import net.minecraft.server.MinecraftServer;
@@ -27,7 +28,7 @@ public class ChunkManager {
 	public void setServer(MinecraftServer server) {this.server = server;}
 	
 	public String updateChunk(ChunkPos ck, Map<String, String> values) {
-		//TODO populate switch statement
+		// populate switch statement
 		ChunkData cd = cap.getOrDefault(ck, new ChunkData(ck));
 		for (Map.Entry<String, String> vals : values.entrySet()) {
 			switch(vals.getKey()) {
@@ -152,7 +153,7 @@ public class ChunkManager {
 			cap.get(ck).owner = guild;
 			cap.get(ck).leasePrice = -1;
 			cap.get(ck).leaseDuration = 0;
-			cap.get(ck).permMin = GnC.gMgr.getBottomRank(guild);
+			cap.get(ck).permMin = (outpostFee > 0 ? GnC.gMgr.getGuildByID(guild).permissions.get(permKey.OUTPOST_CREATE) : GnC.gMgr.getGuildByID(guild).permissions.get(permKey.CORE_CLAIM));
 			cap.get(ck).rentEnd = System.currentTimeMillis();
 			cap.get(ck).isPublic = false;
 			cap.get(ck).isForSale = false;
@@ -186,14 +187,14 @@ public class ChunkManager {
 		return 1;
 	}
 	
-	private void updateOutpostToCore(ChunkPos ck, UUID guild) {
+	public void updateOutpostToCore(ChunkPos ck, UUID guild) {
 		if (cap.get(ck).isOutpost && cap.get(ck).owner.equals(guild)) {
 			if ((cap.get(new ChunkPos(ck.x-1, ck.z)).owner.equals(guild) && !cap.get(new ChunkPos(ck.x-1, ck.z)).isOutpost) ||
-				(cap.get(new ChunkPos(ck.x-1, ck.z)).owner.equals(guild) && !cap.get(new ChunkPos(ck.x+1, ck.z)).isOutpost)	||
+				(cap.get(new ChunkPos(ck.x+1, ck.z)).owner.equals(guild) && !cap.get(new ChunkPos(ck.x+1, ck.z)).isOutpost)	||
 				(cap.get(new ChunkPos(ck.x, ck.z-1)).owner.equals(guild) && !cap.get(new ChunkPos(ck.x, ck.z-1)).isOutpost) ||
 				(cap.get(new ChunkPos(ck.x, ck.z+1)).owner.equals(guild) && !cap.get(new ChunkPos(ck.x, ck.z+1)).isOutpost)) {
 				cap.get(ck).isOutpost = false;
-				//TODO: Remove after testing
+				// Remove after testing
 				System.out.println("Updated to Core: "+ck.toString());
 				updateOutpostToCore(new ChunkPos(ck.x-1, ck.z), guild);
 				updateOutpostToCore(new ChunkPos(ck.x+1, ck.z), guild);

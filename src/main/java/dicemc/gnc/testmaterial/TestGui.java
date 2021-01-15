@@ -29,8 +29,8 @@ public class TestGui extends Screen{
 	public boolean isPauseScreen() {return false;}
 	
 	@Override
-	public boolean keyPressed(int p_231046_1_, int p_231046_2_, int p_231046_3_) {
-		return super.keyPressed(p_231046_1_, p_231046_2_, p_231046_3_);
+	public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+		return super.keyPressed(keyCode, scanCode, modifiers);
 	}
 	
 	private void action() {minecraft.displayGuiScreen(null);}

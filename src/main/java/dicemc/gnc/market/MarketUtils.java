@@ -30,7 +30,7 @@ public class MarketUtils {
 	public enum SortType {PRICE_ASC, PRICE_DESC, NAMES_ASC, NAMES_DESC, ITEM_SPECIFIC, EXCLUDE_SELF_POSTED, ENCHANT}
 	public List<MarketItem> getMarket(int Market_Type, int page, List<SortType> sort, @Nullable Item sortItem, @Nullable String sortEnchant) {
 		List<MarketItem> list = new ArrayList<MarketItem>();
-		//TODO expire qualifying auctions when this is called.
+		// expire qualifying auctions when this is called.
 		return list;
 	}
 	

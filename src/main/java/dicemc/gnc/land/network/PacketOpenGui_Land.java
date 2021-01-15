@@ -53,7 +53,7 @@ public class PacketOpenGui_Land {
 		buf.writeDouble(balG);
 		buf.writeDouble(balP);
 		buf.writeLong(center.asLong());
-		buf.writeCompoundTag(guild.toNBT());
+		buf.writeCompoundTag(guild.toNBT()); // what if guild is NULL?
 		buf.writeInt(chunkData.size());
 		for (int i = 0; i < chunkData.size(); i++) {buf.writeCompoundTag(chunkData.get(i).toNBT());}
 		for (int x = 0; x < 176; x++) {

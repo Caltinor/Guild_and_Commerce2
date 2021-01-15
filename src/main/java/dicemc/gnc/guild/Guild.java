@@ -24,7 +24,17 @@ public class Guild {
     	OUTPOST_CREATE,		//can create new outposts
     	CLAIM_ABANDON,		//can abandon claims
     	CLAIM_SELL,			//can sell claims
-    	SUBLET_MANAGE		//can change sublet settings
+    	SUBLET_MANAGE,		//can change sublet settings
+    	CHANGE_NAME,
+    	SET_TAX,
+    	SET_OPEN_TO_JOIN,
+    	BUY_NEW_RANK,
+    	RANK_TITLE_CHANGE,
+    	ACCOUNT_WITHDRAW,
+    	MANAGE_PERMISSIONS,
+    	SET_MEMBER_RANKS,
+    	INVITE_MEMBERS,
+    	KICK_MEMBER
     }
 
 	public Guild(String name, UUID guildID, boolean isAdmin) {

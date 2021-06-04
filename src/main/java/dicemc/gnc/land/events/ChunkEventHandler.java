@@ -1,91 +1,86 @@
 package dicemc.gnc.land.events;
 
-import dicemc.gnc.GnC;
-import dicemc.gnc.land.ChunkData;
-import dicemc.gnc.land.ChunkManager;
+import dicemc.gnc.land.WorldWSD;
+import dicemc.gnclib.guilds.LogicGuilds;
+import dicemc.gnclib.protection.LogicProtection;
+import dicemc.gnclib.realestate.ChunkData;
+import dicemc.gnclib.util.ChunkPos3D;
+import dicemc.gnclib.util.ComVars;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
 import net.minecraft.util.text.StringTextComponent;
+import net.minecraft.util.text.TextComponent;
+import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.event.entity.EntityEvent.EnteringChunk;
 import net.minecraftforge.event.world.ChunkEvent;
-import net.minecraftforge.event.world.ExplosionEvent;
 import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
 @Mod.EventBusSubscriber
-public class ChunkEventHandler {
+public class ChunkEventHandler extends LogicProtection{
 
 	@SubscribeEvent
 	public static void onChunkLoad(ChunkEvent.Load event) {		
-		if (!event.getWorld().isRemote()) {
+		if (!event.getWorld().isClientSide()) {
 			ServerWorld world = (ServerWorld) event.getWorld();
-			if (GnC.wldMgr.get(world.getDimensionKey()) == null) return;
-			GnC.wldMgr.get(world.getDimensionKey()).loadChunkData(event.getChunk().getPos(), world);
+			ChunkPos cp = event.getChunk().getPos();			
+			int bottom = 0;  //TODO 1.17 update floor to new dimension bottom
+			for (int i = bottom; i < event.getWorld().getMaxBuildHeight(); i+=16) {
+				WorldWSD.get(world).loadChunkData(new ChunkPos3D(cp.x, ChunkPos3D.chunkYFromAltitude(i, bottom), cp.z));
+			}
 		}
 	}
 	
 	@SubscribeEvent
 	public static void onWorldLoad(WorldEvent.Load event) {
-		if (!event.getWorld().isRemote()) {
+		/*if (!event.getWorld().isRemote()) {
 			ServerWorld world = (ServerWorld) event.getWorld();
 			if (GnC.wldMgr.get(world.getDimensionKey()) == null) {
 				GnC.wldMgr.put(world.getDimensionKey(), new ChunkManager());
 				GnC.wldMgr.get(world.getDimensionKey()).setServer(world.getServer());
 				System.out.println("Added Dimension: "+world.getDimensionKey().toString());
 			}
-		}
+		}*/
 	}
 	
 	@SubscribeEvent
 	public static void onChunkUnload(WorldEvent.Save event) {
-		if (!event.getWorld().isRemote()) {
+		if (!event.getWorld().isClientSide()) {
 			ServerWorld world = (ServerWorld) event.getWorld();
-			GnC.wldMgr.get(world.getDimensionKey()).saveChunkData(world);
+			WorldWSD.get(world).saveChunkData();
 		}
 	}
 	
 	@SubscribeEvent
 	public static void onChunkEnter(EnteringChunk event) {
-		if (event.getEntity() instanceof PlayerEntity && !event.getEntity().world.isRemote()) {
+		/* TODO consider how processing could be handled by 
+		 * the library and push those actions to that method
+		 */
+		if (event.getEntity() instanceof PlayerEntity && !event.getEntity().getCommandSenderWorld().isClientSide()) {
+			int bottom = 0; //TODO 1.17 update dimension bottom;
 			int oldX = event.getOldChunkX();
+			int oldY = event.getEntity().yChunk;
 			int oldZ = event.getOldChunkZ();
 			int newX = event.getNewChunkX();
+			int newY = event.getEntity().yChunk;
 			int newZ = event.getNewChunkZ();			
-			if (oldX != newX || oldZ != newZ) {
-				ChunkManager cMgr = GnC.wldMgr.get(event.getEntity().getEntityWorld().getDimensionKey());
-				if (!cMgr.getChunk(new ChunkPos(newX, newZ)).owner.equals(GnC.NIL)) {
-					cMgr.updateOutpostToCore(new ChunkPos(newX, newZ), cMgr.getChunk(new ChunkPos(newX, newZ)).owner);
-				}			
-				ChunkData oref = cMgr.getChunk(new ChunkPos(oldX, oldZ));
-				ChunkData nref = cMgr.getChunk(new ChunkPos(newX, newZ));
+			if (oldX != newX || oldZ != newZ || oldY != newY) {
+				WorldWSD wsd = WorldWSD.get((ServerWorld) event.getEntity().level);			
+				ChunkData oref = wsd.getCap().get(new ChunkPos3D(oldX, oldY, oldZ));
+				ChunkData nref = wsd.getCap().get(new ChunkPos3D(newX, ChunkPos3D.chunkYFromAltitude(newY, bottom), newZ));
 				if (oref == null) return;
-				if (!oref.owner.equals(nref.owner) || (nref.owner.equals(GnC.NIL) && !oref.renter.equals(nref.renter))) {
-					String msg = "Now Entering: " ;
-					if (nref.owner.equals(GnC.NIL)) {
-						if (nref.renter.equals(GnC.NIL)) msg += "Unowned Territory";
-						else msg += "Temporary Claim of: "+ event.getEntity().getServer().getPlayerProfileCache().getProfileByUUID(nref.renter).getName();
+				if (!oref.owner.equals(nref.owner) || ((nref.owner.refID.equals(ComVars.NIL) && !oref.renter.equals(nref.renter)))) {
+					TextComponent context = new StringTextComponent("");
+					if (nref.owner.refID.equals(ComVars.NIL)) {
+						if (nref.renter.refID.equals(ComVars.NIL)) context = new TranslationTextComponent("gnc.land.events.chunkevent.enter.unowned");
+						else context = new TranslationTextComponent("gnc.land.events.chunkevent.enter.tempclaim", event.getEntity().getServer().getProfileCache().get(nref.renter.refID).getName());
 					}
-					else msg += "Territory of Guild: "+ GnC.gMgr.getGuildByID(cMgr.getChunk(new ChunkPos(newX, newZ)).owner).name;	
-					event.getEntity().sendMessage(new StringTextComponent(msg), event.getEntity().getUniqueID());
+					else context = new TranslationTextComponent("gnc.land.events.chunkevent.enter.guildclaim", LogicGuilds.getGuildByID(nref.owner.refID));	
+					event.getEntity().sendMessage(new TranslationTextComponent("gnc.land.events.chunkevent.enter", context), event.getEntity().getUUID());
 				}
 			}
 		}
-	}
-	
-	@SubscribeEvent
-	public static void onExplosion (ExplosionEvent.Detonate event) {
-		for (int i = event.getAffectedBlocks().size()-1; i > 0; i--) {
-			ChunkPos pos = new ChunkPos(new BlockPos(event.getAffectedBlocks().get(i).getX(), event.getAffectedBlocks().get(i).getY(), event.getAffectedBlocks().get(i).getZ()));
-			ChunkData cap = GnC.wldMgr.get(event.getWorld().getDimensionKey()).getChunk(pos);
-			if (!cap.owner.equals(GnC.NIL) && !cap.canExplode) event.getAffectedBlocks().remove(i);
-		}
-		for (int i = event.getAffectedEntities().size()-1; i > 0; i--) {
-			ChunkPos pos = new ChunkPos(event.getAffectedEntities().get(i).chunkCoordX, event.getAffectedEntities().get(i).chunkCoordZ);
-			ChunkData cap = GnC.wldMgr.get(event.getWorld().getDimensionKey()).getChunk(pos);
-			if (!cap.owner.equals(GnC.NIL) && !cap.canExplode) event.getAffectedEntities().remove(i);
-		}		
 	}
 }

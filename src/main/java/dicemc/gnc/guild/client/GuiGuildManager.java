@@ -13,9 +13,6 @@ import com.mojang.blaze3d.systems.RenderSystem;
 
 import dicemc.gnc.GnC;
 import dicemc.gnc.common.PacketGuiRequest;
-import dicemc.gnc.guild.Guild;
-import dicemc.gnc.guild.Guild.permKey;
-import dicemc.gnc.guild.GuildManager.guildUpdates;
 import dicemc.gnc.guild.network.PacketGuildDataToServer;
 import dicemc.gnc.setup.Config;
 import dicemc.gnc.setup.Networking;
@@ -33,7 +30,7 @@ import net.minecraft.util.text.Style;
 import net.minecraftforge.client.gui.ScrollPanel;
 import net.minecraftforge.common.ForgeHooks;
 
-public class GuiGuildManager extends Screen{
+public class GuiGuildManager {/*extends Screen{
 	private Screen parentScreen;
 	public static final ResourceLocation INVENTORY_ADDITIONS = new ResourceLocation(GnC.MOD_ID+":guis/inventoryadditions.png");
 	private DecimalFormat df = new DecimalFormat("###,###,###,##0.00");
@@ -133,24 +130,21 @@ public class GuiGuildManager extends Screen{
 		line5a = "$"+df.format(worth);
 		line6a = "$"+df.format(taxableWorth);
 		line7a = "$"+df.format(taxCharge);
-		nameField.active = isPermitted(permKey.CHANGE_NAME);
+		nameField.active = isPermitted(PermKey.CHANGE_NAME);
 		nameField.setText(guild.name);
-		nameChange.active = isPermitted(permKey.CHANGE_NAME);
+		nameChange.active = isPermitted(PermKey.CHANGE_NAME);
 		taxField.setText(pf.format(guild.tax));
-		taxField.active = isPermitted(permKey.SET_TAX);
-		setTax.active = isPermitted(permKey.SET_TAX);
+		taxField.active = isPermitted(PermKey.SET_TAX);
+		setTax.active = isPermitted(PermKey.SET_TAX);
 		openToggle.setMessage(new StringTextComponent("Public :"+ (guild.open ? "Yes" : "No")));
-		openToggle.active = isPermitted(permKey.SET_OPEN_TO_JOIN);
-		rankBuy.active = isPermitted(permKey.BUY_NEW_RANK);
-		rankNameField.active = isPermitted(permKey.RANK_TITLE_CHANGE);
-		rankRename.active = isPermitted(permKey.RANK_TITLE_CHANGE);
+		openToggle.active = isPermitted(PermKey.SET_OPEN_TO_JOIN);
+		rankBuy.active = isPermitted(PermKey.BUY_NEW_RANK);
+		rankNameField.active = isPermitted(PermKey.RANK_TITLE_CHANGE);
+		rankRename.active = isPermitted(PermKey.RANK_TITLE_CHANGE);
 	}
 	
-	private boolean isPermitted(permKey key) {
-		int rank = guild.members.getOrDefault(minecraft.player.getUniqueID(), -3);
-		if (rank < 0) return false;
-		if (rank <= guild.permissions.get(key)) return true;
-		return false;
+	private boolean isPermitted(PermKey key) {
+		return LogicGuilds.hasPermission(guild.guildID, key.rl, Minecraft.getInstance().player.getUniqueID());
 	}
 	
 	@Override
@@ -280,7 +274,7 @@ public class GuiGuildManager extends Screen{
                 ITextComponent chat = ForgeHooks.newChatWithLinks(line, false);
                 int maxTextLength = this.width - 12;
                 if (maxTextLength >= 0) {
-                    ret.addAll(font.getCharacterManager().func_238362_b_(chat, maxTextLength, Style.EMPTY));
+                    ret.addAll(font.getCharacterManager().splitLines(chat, maxTextLength, Style.EMPTY));
                 }
             }
             return ret;
@@ -311,7 +305,7 @@ public class GuiGuildManager extends Screen{
                     	vLine(mStack, left+width-1, relativeY-1, relativeY-1+font.FONT_HEIGHT, Color.YELLOW.getRGB());
                     }
                     RenderSystem.enableBlend();
-                    //GuiGuildManager.this.font.func_238407_a_(mStack, lines.get(i), left+1, relativeY, 0xFFFFFF);
+                    //GuiGuildManager.this.font.drawShadow(mStack, lines.get(i), left+1, relativeY, 0xFFFFFF);
                     RenderSystem.disableAlphaTest();
                     RenderSystem.disableBlend();
                 }
@@ -330,7 +324,7 @@ public class GuiGuildManager extends Screen{
             selectedItem = lineIdx-1;
             if (line != null)
             {
-                return font.getCharacterManager().func_238357_a_(line, mouseX);
+                return font.getCharacterManager().componentStyleAtWidth(line, mouseX);
             }
             return null;
         }
@@ -347,5 +341,5 @@ public class GuiGuildManager extends Screen{
 
         @Override
         protected void drawBackground() {}
-	}
+	}*/
 }

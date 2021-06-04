@@ -11,7 +11,6 @@ import dicemc.gnc.guild.network.PacketUpdateGuiNoGuild;
 import dicemc.gnc.land.network.PacketChunkDataToServer;
 import dicemc.gnc.land.network.PacketOpenGui_Land;
 import dicemc.gnc.land.network.PacketUpdateChunkManagerGui;
-import dicemc.gnc.testmaterial.PacketRequestData;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.fml.network.NetworkDirection;
@@ -86,7 +85,7 @@ public class Networking {
 	}
 	
 	public static void sendToClient(Object packet, ServerPlayerEntity player) {
-		INSTANCE.sendTo(packet, player.connection.netManager, NetworkDirection.PLAY_TO_CLIENT);
+		INSTANCE.sendTo(packet, player.connection.connection, NetworkDirection.PLAY_TO_CLIENT);
 	}
 	public static void sendToServer(Object packet) {
 		INSTANCE.sendToServer(packet);

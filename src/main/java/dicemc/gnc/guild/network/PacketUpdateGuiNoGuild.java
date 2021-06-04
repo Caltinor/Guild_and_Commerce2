@@ -14,9 +14,9 @@ public class PacketUpdateGuiNoGuild {
 	public PacketUpdateGuiNoGuild(PacketBuffer buf) {
 		balP = buf.readDouble();
 		int size = buf.readInt();
-		for (int i = 0; i < size; i++) {invites.add(buf.readString());}
+		for (int i = 0; i < size; i++) {invites.add(buf.readUtf(32767));}
 		size = buf.readInt();
-		for (int i = 0; i < size; i++) {openGuilds.add(buf.readString());}
+		for (int i = 0; i < size; i++) {openGuilds.add(buf.readUtf(32767));}
 	}
 	
 	public PacketUpdateGuiNoGuild(double balP, List<String> invites, List<String> openGuilds) {
@@ -28,9 +28,9 @@ public class PacketUpdateGuiNoGuild {
 	public void toBytes(PacketBuffer buf) {
 		buf.writeDouble(balP);
 		buf.writeInt(invites.size());
-		for (int i = 0; i < invites.size(); i++) {buf.writeString(invites.get(i));}
+		for (int i = 0; i < invites.size(); i++) {buf.writeUtf(invites.get(i));}
 		buf.writeInt(openGuilds.size());
-		for (int i = 0; i < openGuilds.size(); i++) {buf.writeString(openGuilds.get(i));}
+		for (int i = 0; i < openGuilds.size(); i++) {buf.writeUtf(openGuilds.get(i));}
 	}
  	
 	public boolean handle(Supplier<NetworkEvent.Context> ctx) {

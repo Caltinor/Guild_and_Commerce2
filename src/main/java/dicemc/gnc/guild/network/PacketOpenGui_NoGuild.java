@@ -16,9 +16,9 @@ public class PacketOpenGui_NoGuild {
 	public PacketOpenGui_NoGuild(PacketBuffer buf) {
 		balP = buf.readDouble();
 		int size = buf.readInt();
-		for (int i = 0; i < size; i++) {invites.add(buf.readString());}
+		for (int i = 0; i < size; i++) {invites.add(buf.readUtf(32767));}
 		size = buf.readInt();
-		for (int i = 0; i < size; i++) {openGuilds.add(buf.readString());}
+		for (int i = 0; i < size; i++) {openGuilds.add(buf.readUtf(32767));}
 	}
 	
 	public PacketOpenGui_NoGuild(double balP, List<String> invites, List<String> openGuilds) {
@@ -30,9 +30,9 @@ public class PacketOpenGui_NoGuild {
 	public void toBytes(PacketBuffer buf) {
 		buf.writeDouble(balP);
 		buf.writeInt(invites.size());
-		for (int i = 0; i < invites.size(); i++) {buf.writeString(invites.get(i));}
+		for (int i = 0; i < invites.size(); i++) {buf.writeUtf(invites.get(i));}
 		buf.writeInt(openGuilds.size());
-		for (int i = 0; i < openGuilds.size(); i++) {buf.writeString(openGuilds.get(i));}
+		for (int i = 0; i < openGuilds.size(); i++) {buf.writeUtf(openGuilds.get(i));}
 	}
  	
 	public boolean handle(Supplier<NetworkEvent.Context> ctx) {

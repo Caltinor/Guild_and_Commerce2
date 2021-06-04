@@ -2,8 +2,8 @@ package dicemc.gnc.guild.network;
 
 import java.util.function.Supplier;
 
-import dicemc.gnc.guild.Guild;
 import dicemc.gnc.guild.client.GuiGuildManager;
+import dicemc.gnclib.guilds.entries.Guild;
 import net.minecraft.network.PacketBuffer;
 import net.minecraftforge.fml.network.NetworkEvent;
 
@@ -18,7 +18,8 @@ public class PacketUpdateGuiGuild {
 		worth = buf.readDouble();
 		taxableWorth = buf.readDouble();
 		balG = buf.readDouble();
-		guild = new Guild(buf.readCompoundTag());
+		guild = Guild.getDefault();
+		guild.readBytes(buf);
 	}
 	
 	public PacketUpdateGuiGuild(Guild guild, double worth, double taxableWorth, double balG, int coreCount, int outpostCount) {
@@ -36,12 +37,12 @@ public class PacketUpdateGuiGuild {
 		buf.writeDouble(worth);
 		buf.writeDouble(taxableWorth);
 		buf.writeDouble(balG);
-		buf.writeCompoundTag(guild.toNBT());
+		buf.writeBytes(guild.writeBytes(buf));
 	}
  	
 	public boolean handle(Supplier<NetworkEvent.Context> ctx) {
 		ctx.get().enqueueWork(() -> {
-			GuiGuildManager.sync(guild, worth, taxableWorth, balG, coreCount, outpostCount);
+			//GuiGuildManager.sync(guild, worth, taxableWorth, balG, coreCount, outpostCount);
 		});
 		return true;
 	}

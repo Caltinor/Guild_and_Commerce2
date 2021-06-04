@@ -1,13 +1,8 @@
 package dicemc.gnc.guild.network;
 
-import java.util.List;
 import java.util.function.BiFunction;
 import java.util.function.Supplier;
 
-import dicemc.gnc.GnC;
-import dicemc.gnc.account.AccountManager;
-import dicemc.gnc.common.PacketGuiRequest;
-import dicemc.gnc.setup.Networking;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraftforge.fml.network.NetworkEvent;
@@ -17,20 +12,9 @@ public class PacketNoGuildDataToServer {
 	private final String str;
 	
 	public enum PkType {
-		JOIN((packet, ctx) -> {
-			String resp = GnC.gMgr.joinGuild(GnC.gMgr.getGuildByName(packet.str).guildID, ctx.get().getSender().getUniqueID());
-			Networking.sendToServer(new PacketGuiRequest(PacketGuiRequest.gui.GUILD));
-			return resp;
-		}),
-		REJECT((packet, ctx) -> {
-			String resp = GnC.gMgr.rejectInvite(GnC.gMgr.getGuildByName(packet.str).guildID, ctx.get().getSender().getUniqueID());
-			double balP = GnC.aMgr.getBalance(ctx.get().getSender().getUniqueID());
-			List<String> invites = GnC.gMgr.getInvitedGuilds(ctx.get().getSender().getUniqueID());
-			List<String> openGuilds = GnC.gMgr.getOpenGuilds(ctx.get().getSender().getUniqueID());
-			Networking.sendToClient(new PacketUpdateGuiNoGuild(balP, invites, openGuilds), ctx.get().getSender());
-			return resp;			
-		}),
-		CREATE((packet, ctx) -> GnC.gMgr.createNewGuild(packet.str, ctx.get().getSender().getUniqueID(), false));
+		JOIN((packet, ctx) -> ""),
+		REJECT((packet, ctx) -> ""),
+		CREATE((packet, ctx) -> "");
 	
 		public final BiFunction<PacketNoGuildDataToServer, Supplier<NetworkEvent.Context>, String> packetHandler;
 		
@@ -39,7 +23,7 @@ public class PacketNoGuildDataToServer {
 	
 	public PacketNoGuildDataToServer(PacketBuffer buf) {
 		action = PkType.values()[buf.readVarInt()];
-		str = buf.readString();
+		str = buf.readUtf(32767);
 		
 	}
 	
@@ -50,13 +34,13 @@ public class PacketNoGuildDataToServer {
 	
 	public void toBytes(PacketBuffer buf) {
 		buf.writeVarInt(action.ordinal());
-		buf.writeString(str);
+		buf.writeUtf(str);
 	}
  	
 	public boolean handle(Supplier<NetworkEvent.Context> ctx) {
 		ctx.get().enqueueWork(() -> {
 			StringTextComponent text = new StringTextComponent(this.action.packetHandler.apply(this, ctx));
-			ctx.get().getSender().getServer().sendMessage(text, ctx.get().getSender().getUniqueID());
+			ctx.get().getSender().getServer().sendMessage(text, ctx.get().getSender().getUUID());
 		});
 		return true;
 	}

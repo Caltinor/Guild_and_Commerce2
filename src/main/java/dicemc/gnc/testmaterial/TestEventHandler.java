@@ -1,17 +1,5 @@
 package dicemc.gnc.testmaterial;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
-
-import dicemc.gnc.GnC;
-import dicemc.gnc.guild.Guild;
-import dicemc.gnc.guild.Guild.permKey;
-import dicemc.gnc.land.WhitelistItem;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.util.math.ChunkPos;
-import net.minecraftforge.event.entity.player.PlayerInteractEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
 @Mod.EventBusSubscriber
@@ -36,7 +24,7 @@ public class TestEventHandler {
 				event.getEntity().sendMessage(new StringTextComponent("Entering: " +ref.pos.toString() + " $"+String.valueOf(ref.price)), event.getEntity().getUniqueID());
 			}
 		}
-	}*/
+	}
 	
 	@SubscribeEvent
 	public static void onRightClick(PlayerInteractEvent.RightClickBlock event) {
@@ -74,6 +62,6 @@ public class TestEventHandler {
 				}
 			}
 		}
-	}
+	}*/
 }
 

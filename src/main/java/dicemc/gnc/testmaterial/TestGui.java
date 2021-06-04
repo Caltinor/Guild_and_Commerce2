@@ -2,22 +2,21 @@ package dicemc.gnc.testmaterial;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
 
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.button.Button;
 import net.minecraft.util.text.StringTextComponent;
 
 public class TestGui extends Screen{
-	private Screen parentScreen;
+	//private Screen parentScreen;
 
 	public static void open() {
-		Screen parent = Minecraft.getInstance().currentScreen;
-		Minecraft.getInstance().displayGuiScreen(new TestGui(parent));
+		//Screen parent = Minecraft.getInstance().currentScreen;
+		//Minecraft.getInstance().displayGuiScreen(new TestGui(parent));
 	}
 	
 	protected TestGui(Screen parentScreen) { 
 		super(new StringTextComponent("Test")); 
-		this.parentScreen = parentScreen;
+		//this.parentScreen = parentScreen;
 	}
 	
 	@Override
@@ -33,7 +32,7 @@ public class TestGui extends Screen{
 		return super.keyPressed(keyCode, scanCode, modifiers);
 	}
 	
-	private void action() {minecraft.displayGuiScreen(null);}
+	private void action() {minecraft.setScreen(null);}
 
 	@Override
 	public void render(MatrixStack mStack, int mouseX, int mouseY, float partialTicks) {

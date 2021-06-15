@@ -6,12 +6,12 @@ import com.mojang.brigadier.tree.LiteralCommandNode;
 import net.minecraft.command.CommandSource;
 import net.minecraft.command.Commands;
 
-public class AccountCommandRoot {
+public class CmdAccountRoot {
 
 	public static void register(CommandDispatcher<CommandSource> dispatcher) {
 		LiteralCommandNode<CommandSource> cmdSRC = dispatcher.register(Commands.literal("acccount")
-				.then(AccountCommandDeposit.register(dispatcher))
-				.then(AccountCommandWithdraw.register(dispatcher)));
+				.then(CmdAccountDeposit.register(dispatcher))
+				.then(CmdAccountWithdraw.register(dispatcher)));
 		
 		dispatcher.register(Commands.literal("acct").redirect(cmdSRC));
 	}

@@ -9,8 +9,8 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.command.CommandSource;
 import net.minecraft.command.Commands;
 
-public class GuildCommandLeave implements Command<CommandSource>{
-private static final GuildCommandLeave CMD = new GuildCommandLeave();
+public class CmdGuildLeave implements Command<CommandSource>{
+private static final CmdGuildLeave CMD = new CmdGuildLeave();
 	
 	public static ArgumentBuilder<CommandSource, ?> register(CommandDispatcher<CommandSource> dispatcher) {
 		return Commands.literal("leave").executes(CMD);

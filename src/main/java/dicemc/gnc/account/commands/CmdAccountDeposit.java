@@ -9,11 +9,11 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.command.CommandSource;
 import net.minecraft.command.Commands;
 
-public class AccountCommandWithdraw implements Command<CommandSource>{
-	private static final AccountCommandWithdraw CMD = new AccountCommandWithdraw();
+public class CmdAccountDeposit implements Command<CommandSource>{
+	private static final CmdAccountDeposit CMD = new CmdAccountDeposit();
 	
 	public static ArgumentBuilder<CommandSource, ?> register(CommandDispatcher<CommandSource> dispatcher) {
-		return Commands.literal("withdraw").executes(CMD);
+		return Commands.literal("deposit").executes(CMD);
 	}
 
 	@Override
@@ -21,4 +21,5 @@ public class AccountCommandWithdraw implements Command<CommandSource>{
 		// Auto-generated method stub
 		return 0;
 	}	
+
 }

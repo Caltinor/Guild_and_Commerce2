@@ -4,8 +4,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 import dicemc.gnc.GnC;
-import dicemc.gnc.account.commands.AccountCommandRoot;
-import dicemc.gnc.guild.commands.GuildCommandRoot;
+import dicemc.gnc.account.commands.CmdAccountRoot;
+import dicemc.gnc.common.commands.CmdAdminRoot;
+import dicemc.gnc.guild.commands.CmdGuildRoot;
 import dicemc.gnc.guild.events.GuildEvents;
 import dicemc.gnclib.configs.ConfigCore;
 import net.minecraftforge.event.RegisterCommandsEvent;
@@ -65,7 +66,8 @@ public class CommonSetup {
 	
 	@SubscribeEvent
 	public static void onCommandRegister(RegisterCommandsEvent event) {
-		AccountCommandRoot.register(event.getDispatcher());
-		GuildCommandRoot.register(event.getDispatcher());
+		CmdAdminRoot.register(event.getDispatcher());
+		CmdAccountRoot.register(event.getDispatcher());
+		CmdGuildRoot.register(event.getDispatcher());
 	}
 }
